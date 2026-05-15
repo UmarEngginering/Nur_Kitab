@@ -161,3 +161,51 @@ class HomePage extends StatefulWidget{
       );
     }
   }
+
+  class PrayerSchedulePage extends StatelessWidget {
+    const PrayerSchedulePage({super.key});
+
+    @override
+    Widget build(BuildContext context) {
+      final prayers = {
+        'Imsak': '04:10', 
+        'subuh': '04:20', 
+        'Terbit': '05:35',
+        'Dzuhur': '11:38', 
+        'Ashar': '14:58', 
+        'Maghrib': '17:35', 
+        'Isya': '18:47',
+      };
+      return Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            color: Colors.teal[900],
+            child: const Column(
+              children: [
+                Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16)),
+                SizedBox(height: 10),
+                Text('17:35', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
+                Text('Menuju Maghrib', style: TextStyle(color: Colors.tealAccent)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: prayers.entries.map((e) => 
+            Card(
+              color: Colors.grey[900],
+              child: ListTile(
+                title: Text(e.key),
+                trailing: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                leading: const Icon(Icons.notifications_none, color: Colors.teal),
+              ),
+            )).toList(),
+            ),
+          ),
+        ],
+      );
+    }
+  }
