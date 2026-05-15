@@ -44,7 +44,7 @@ class HomePage extends StatefulWidget{
           backgroundColor: Colors.black,
           leading: const Icon(Icons.search, color: Colors.teal),
           title: const Text(
-            'Nur_Kitab',
+            'نورالکتاب',
             style: TextStyle(fontFamily: 'Serif',
             color: Colors.teal, fontSize: 24),          
         ),
@@ -80,32 +80,34 @@ class HomePage extends StatefulWidget{
       return ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          _buildWideCard('Al-Qur\'an', false),
-          _buildWideCard('Dzikir Siang-Malam', false),
-          _buildWideCard('Wirid Hari Jumat', false),
-          _buildWideCard('Kumpulan Bacaan Sholawat', true),
+          _buildWideCard(context,'Al-Qur\'an', AlQuranPage(), false),
+          _buildWideCard(context, 'Dzikir Siang-Malam', DzikirPage(), false),
+          _buildWideCard(context, 'Wirid Hari Jumat',  WiridPage(),false),
+          _buildWideCard(context, 'Kumpulan Bacaan Sholawat', SholawatPage(), true),
           
           Row(
             children: [
-              Expanded(child: _buildSquareCard('Amalan Mulia', false)),
+              Expanded(child: _buildSquareCard(context,'Amalan Mulia', AmalanPage(), false)),
               const SizedBox(width: 8),
-              Expanded(child: _buildSquareCard('Maulid & Qashidah', false)),
+              Expanded(child: _buildSquareCard(context, 'Maulid & Qashidah', MaulidPage(), false)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildSquareCard('Tuntunan Ziarah', false)),
+              Expanded(child: _buildSquareCard(context, 'Tuntunan Ziarah', TuntunanPage(), false)),
               const SizedBox(width: 8),
-              Expanded(child: _buildSquareCard('Hizib & Ratib', true)),
+              Expanded(child: _buildSquareCard(context, 'Hizib & Ratib', HizibPage(), true)),
             ],
           ),
         ],
       );
     }
 
-    Widget _buildWideCard(String title, bool isNew) {
-      return Container(
+    Widget _buildWideCard(BuildContext context, title, Widget targetPage, bool isNew) {
+      return GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
+        child: Container(
         height: 100,
         margin: const EdgeInsets.only(bottom: 8),
         decoration: _cardDecoration(),
@@ -113,15 +115,18 @@ class HomePage extends StatefulWidget{
           children: [
             if (isNew) _badgeNew(),
             Center(
-              child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
+          ),
         ),
       );
     }
 
-    Widget _buildSquareCard(String title, bool isNew) {
-      return Container(
+    Widget _buildSquareCard(BuildContext context, title, Widget targetPage, bool isNew) {
+      return GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
+        child: Container(
         height: 120,
         decoration: _cardDecoration(),
         child: Stack(
@@ -130,10 +135,11 @@ class HomePage extends StatefulWidget{
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],
+        ),
         ),
       );
     }
@@ -143,7 +149,7 @@ class HomePage extends StatefulWidget{
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(8),
         image: const DecorationImage(
-        image: NetworkImage(''),
+        image: NetworkImage('https://cdn.prod.website-files.com/65af5f0812c914d3fef6a68c/65f27c26e1af10be0127caf2_5.%20Menggali%20Kearifan%20Spiritual%20dalam%20Petunjuk%20Al-Quran.jpg'),
         opacity: 0.3,
         fit: BoxFit.cover,
         ),
@@ -241,3 +247,104 @@ class HomePage extends StatefulWidget{
         );
     }
   }
+    
+  class AlQuranPage extends StatelessWidget {
+    const AlQuranPage({super.key});
+    @override
+
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Al-Qur\'an'), backgroundColor: Colors.black, foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Al-Qur\'an', style: TextStyle(color:Colors.white))),
+      );
+    }
+  }
+  class DzikirPage extends StatelessWidget {
+    const DzikirPage({super.key});
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Dzikir Siang-Malam'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Dzikir', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class WiridPage extends StatelessWidget {
+    const WiridPage({super.key});
+    @override
+
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Wirid Hari Jumat'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Wirid', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class SholawatPage extends StatelessWidget {
+    const SholawatPage({super.key});
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Kumpulan Sholawat'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Sholawat', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class AmalanPage extends StatelessWidget {
+    const AmalanPage({super.key});
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Amalan Mulia'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Amalan', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class MaulidPage extends StatelessWidget {
+    const MaulidPage({super.key});
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Maulid & Qashidah'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Maulid', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class TuntunanPage extends StatelessWidget {
+    const TuntunanPage({super.key});
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Tuntunan Ziarah'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Tuntunan', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  class HizibPage extends StatelessWidget {
+    const HizibPage({super.key});
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: const Text('Hizib & Ratib'), backgroundColor: Colors.black,
+        foregroundColor: Colors.white),
+        body: const Center(child: Text('Halaman Hizib', style: TextStyle(color: Colors.white))),
+      );
+    }
+  }
+  
