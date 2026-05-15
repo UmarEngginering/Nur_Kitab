@@ -252,11 +252,28 @@ class HomePage extends StatefulWidget{
     const AlQuranPage({super.key});
     @override
 
+
     Widget build(BuildContext context) {
+      final List<String> surah = ["Al-Fatihah",
+      "Al-Ikhlas", "Al-Falaq", "An-Nas"];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Al-Qur\'an'), backgroundColor: Colors.black, foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Al-Qur\'an', style: TextStyle(color:Colors.white))),
+        body: ListView.builder(
+          itemCount: surah.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading:  CircleAvatar(backgroundColor: Colors.teal, child: Text("${index + 1}", style: const TextStyle(color: Colors.white))),
+              title: Text(surah[index], style: const TextStyle(color: Colors.white)),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => IsiBacaanPage(judul: surah[index]),
+                  ));
+              },
+            );
+          },
+        ),
       );
     }
   }
@@ -348,3 +365,77 @@ class HomePage extends StatefulWidget{
     }
   }
   
+  class IsiBacaanPage extends StatelessWidget {
+    final String judul;
+    const IsiBacaanPage({super.key, required this.judul});
+
+    @override
+    Widget build(BuildContext context) {
+      String teksArab = "";
+      String artiTeks = "";
+
+      if (judul == "Al-Fatihah") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ (١) اَلْحَمْدُ لِلّٰهِ رَبِّ الْعٰلَمِيْنَ (٢) الرَّحْمٰنِ الرَّحِيْمِ (٣) مٰلِكِ يَوْمِ الدِّيْنِ (٤) اِيَّاكَ نَعْبُدُ وَاِيَّاكَ نَسْتَعِيْنُ (٥) اِهْدِنَا الصِّرَاطَ الْمُسْتَقِيْمَ (٦) صِرَاطَ الَّذِيْنَ اَنْعَمْتَ عَلَيْهِمْ ەۙ غَيْرِ الْمَغْضُوْبِ عَلَيْهِمْ وَلَا الضَّاۤلِّيْنَ (٧)";
+        artiTeks = "1. Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. 2. Segala puji bagi Allah, Tuhan seluruh alam. 3. Yang Maha Pengasih, Maha Penyayang. 4. Pemilik hari pembalasan. 5. Hanya kepada Engkaulah kami menyembah dan hanya kepada Engkaulah kami mohon pertolongan. 6. Bimbinglah kami ke jalan yang lurus. 7. (yaitu) jalan orang-orang yang telah Engkau beri nikmat, bukan (jalan) mereka yang dimurkai dan bukan (pula jalan) mereka yang sesat.";
+      }
+      else if (judul == "Al-Ikhlas") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ هُوَ اللّٰهُ اَحَدٌ (١) اَللّٰهُ الصَّمَدُ (٢) لَمْ يَلِدْ وَلَمْ يُولَدْ (٣) وَلَمْ يَكُنْ لَّهٗ كُفُوًا اَحَدٌ (٤)";
+        artiTeks = "1. Katakanlah (Muhammad), Dialah Allah, Yang Maha Esa. 2. Allah tempat meminta segala sesuatu. 3. (Allah) tidak beranak dan tidak pula diperanakkan. 4. Dan tidak ada sesuatu yang setara dengan Dia.";
+      }
+      else if (judul == "Al-Falaq") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ اَعُوْذُ بِرَبِّ الْفَلَقِ (١) مِنْ شَرِّ مَا خَلَقَ (٢) وَمِنْ شَرِّ غَاسِقٍ اِذَا وَقَبَ (٣) وَمِنْ شَرِّ النَّفّٰثٰتِ فِى الْعُقَدِ (٤) وَمِنْ شَرِّ حَاسِدٍ اِذَا حَسَدَ (٥)";
+        artiTeks = "1. Katakanlah, Aku berlindung kepada Tuhan yang menguasai subuh (fajar), \n2. dari kejahatan (makhluk yang) Dia ciptakan, \n3. dan dari kejahatan malam apabila telah gelap gulita, \n4. dan dari kejahatan (perempuan-perempuan) penyihir yang meniup pada buhul-buhul (talinya), \n5. dan dari kejahatan orang yang dengki apabila dia dengki.";
+      }
+      else if (judul == "An-Nas") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ اَعُوْذُ بِرَبِّ النَّاسِ (١) مَلِكِ النَّاسِ (٢) اِلٰهِ النَّاسِ (٣) مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (٤) الَّذِيْ يُوَسْوِسُ فِيْ صُدُوْرِ النَّاسِ (٥) مِنَ الْجِنَّةِ وَالنَّاسِ (٦)";
+        artiTeks = "1. Katakanlah, Aku berlindung kepada Tuhannya manusia, \n2. Raja manusia, \n3. Sembahan manusia, \n4. dari kejahatan (bisikan) setan yang bersembunyi, \n5. yang membisikkan (kejahatan) ke dalam dada manusia, \n6. dari (golongan) jin dan manusia.";
+      }
+
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(title: Text(judul),
+        backgroundColor: Colors.black, foregroundColor: Colors.white),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.teal.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+            Text(
+              teksArab,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                height: 2.2,
+                fontFamily: 'Serif'
+              ),
+              textAlign: TextAlign.right,
+            ),
+            const Divider(color: Colors.teal, height: 30),
+            Text(
+              artiTeks,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.left,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  }
+  }

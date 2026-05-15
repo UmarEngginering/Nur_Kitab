@@ -3,7 +3,7 @@ Nur_Kitab --Aplikasi Islam Digital
 Aplikasi mobile berbasis **Flutter** yang yang dibuat untuk memenuhi tugas UAS akademik dan sebagai sarana dakwah digitaal yang menyediakan akses cepat ke Al-Qur'an, Dzikir harian, Sholawat dan panduan ibadah lainnya. Desain aplikasi menggunakan tema gelap mewah (luxury dart theme) untuk kenyamanan membaca di malam hari maupun siang hari.
 
 ## Fitur Utama
-1. **Al-Qur'an Digital** : Daftar surah lengkap dengan tampilan ayat.
+1. **Al-Qur'an Digital** : Daftar surah lengkap dengan tampilan ayat dan terjemahan.
 2. **Dzikir & Wirid** : Kumpulan dzikir pagi, petang, dan wirid khusus (seperti wirid jumat).
 3. **Panduan Ibadah** : Tuntunan Ziarah, Hizib, Ratib, dan Maulid.
 4. **Jadwal Sholat** : Informasi waktu sholat (dalam pengembangan).
