@@ -282,11 +282,35 @@ class HomePage extends StatefulWidget{
 
     @override
     Widget build(BuildContext context) {
+      final List<Map<String, dynamic>> menuDzikir = [
+        {"judul": "Dzikir Pagi", "ikon": Icons.wb_sunny},
+        {"judul": "Dzikir Petang", "ikon": Icons.nightlight_round},
+        {"judul": "Setelah Sholat Subuh", "ikon": Icons.wb_twilight},
+        {"judul": "Setelah Sholat Dzuhur", "ikon": Icons.wb_sunny_rounded},
+        {"judul": "Setelah Sholat Ashar", "ikon": Icons.wb_cloudy},
+        {"judul": "Setelah Sholat Maghrib", "ikon": Icons.dark_mode},
+        {"judul": "Setelah Sholat Isya", "ikon": Icons.bedtime},
+      ];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Dzikir Siang-Malam'), backgroundColor: Colors.black,
         foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Dzikir', style: TextStyle(color: Colors.white))),
+        body: ListView.builder(
+          itemCount: menuDzikir.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: Icon(menuDzikir[index] ['ikon'], color: Colors.teal),
+              title: Text(menuDzikir[index] ['judul'], 
+              style: const TextStyle(color: Colors.white)
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: menuDzikir[index] ['judul']),
+                ));
+              },
+            );
+          },
+        ),
       );
     }
   }
@@ -389,6 +413,36 @@ class HomePage extends StatefulWidget{
       else if (judul == "An-Nas") {
         teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ اَعُوْذُ بِرَبِّ النَّاسِ (١) مَلِكِ النَّاسِ (٢) اِلٰهِ النَّاسِ (٣) مِنْ شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (٤) الَّذِيْ يُوَسْوِسُ فِيْ صُدُوْرِ النَّاسِ (٥) مِنَ الْجِنَّةِ وَالنَّاسِ (٦)";
         artiTeks = "1. Katakanlah, Aku berlindung kepada Tuhannya manusia, \n2. Raja manusia, \n3. Sembahan manusia, \n4. dari kejahatan (bisikan) setan yang bersembunyi, \n5. yang membisikkan (kejahatan) ke dalam dada manusia, \n6. dari (golongan) jin dan manusia.";
+      }
+
+      // -- BAGIAN DZIKIR --
+      else if (judul == "Dzikir Pagi") {
+        teksArab = "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ (١)";
+        artiTeks = "1. Kami memasuki waktu pagi dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya.";
+      }
+      else if (judul == "Dzikir Petang") {
+        teksArab = "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ (١)";
+        artiTeks = "1. Kami memasuki waktu petang dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya.";
+      }
+      else if (judul == "Setelah Sholat Subuh") {
+        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) اَللَّهُمَّ أَجِرْنِي مِنَ النَّارِ (٧×) (٢)";
+        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan. \n2. Ya Allah, lindungilah aku dari api neraka (7x setelah subuh).";
+      }
+      else if (judul == "Setelah Sholat Dzuhur") {
+        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ Lَهُ (٢)";
+        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat... \n2. Tidak ada tuhan yang berhak disembah kecuali Allah semata.";
+      }
+      else if (judul == "Setelah Sholat Ashar") {
+        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
+        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
+      }
+      else if (judul == "Setelah Sholat Maghrib") {
+        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) اَللَّهُمَّ أَجِرْنِي مِنَ النَّارِ (٧×) (٢)";
+        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat... \n2. Ya Allah, lindungilah aku dari api neraka (7x setelah maghrib).";
+      }
+      else if (judul == "Setelah Sholat Iaya") {
+        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
+        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
       }
 
       return Scaffold(
