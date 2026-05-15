@@ -209,3 +209,35 @@ class HomePage extends StatefulWidget{
       );
     }
   }
+
+  class ProfilePage extends StatelessWidget{
+      const ProfilePage({super.key});
+
+      @override
+      Widget build(BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.teal,
+                child: Icon(Icons.person, size: 50, color: Colors.white), 
+              ),
+              const SizedBox(height: 20),
+              const Text("Umar", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text('Developer Nur_Kitab', style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 30),
+              Card(
+                color: Colors.grey[900],
+                child: const ListTile(
+                  leading: Icon(Icons.info, color: Colors.teal),
+                  title: Text('Versi Aplikasi'),
+                  trailing: Text('1.0.0'),
+                ),
+              ),
+            ],
+          ),
+        );
+    }
+  }
