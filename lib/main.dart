@@ -379,7 +379,8 @@ class HomePage extends StatefulWidget{
                 ));
               },
             );
-          },),
+          },
+        ),
       );
     }
   }
@@ -413,7 +414,7 @@ class HomePage extends StatefulWidget{
               },
             );
           },
-        )
+        ),
       );
     }
   }
@@ -447,7 +448,7 @@ class HomePage extends StatefulWidget{
               },
             );
           },
-        )
+        ),
       );
     }
   }
@@ -455,11 +456,33 @@ class HomePage extends StatefulWidget{
     const TuntunanPage({super.key});
     @override
     Widget build(BuildContext context) {
+      final List<String> tuntunan = [
+        "1. Salam Ahli Kubur",
+        "2. Membaca Hadiah Fatihah",
+        "3. Membaca Surah Yasin (Awal)",
+        "4. Doa Khusus Ziarah Kubur",
+      ];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Tuntunan Ziarah'), backgroundColor: Colors.black,
         foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Tuntunan', style: TextStyle(color: Colors.white))),
+        body: ListView.builder(
+          itemCount: tuntunan.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
+              title: Text(
+                tuntunan[index],
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: tuntunan[index]),
+                ));
+              },
+            );
+          },
+        ),
       );
     }
   }
@@ -626,6 +649,24 @@ class HomePage extends StatefulWidget{
                   "2. Wahai jiwa, bahagia lah dengan pertemuan ini! Wahai mata, sejukkanlah pandangan kami! Ini adalah keindahan Al-Musthafa (Nabi pilihan), cahaya-cahayanya telah tampak terang bagi kami.\n\n"
                   "3. Wahai kota Thaybah (Madinah), apa yang bisa kami katakan? Sedangkan di dalam dirimu telah tinggal sang Rasul. Dan kami semua berharap untuk bisa sampai kepada Muhammad, Nabi kami.\n\n"
                   "4. Semoga Allah Sang Pencipta melimpahkan sholawat kepadanya setiap malam dan pagi hari, juga kepada keluarganya yang suci lagi mulia, serta para sahabatnya yang merupakan ahli petunjuk.";
+      }
+
+      // -- BAGIAN TUNTUNAN ZIARAH --
+      else if (judul == "1. Salam Ahli Kubur") {
+        teksArab = "السَّلَامُ عَلَيْكُمْ دَارَ قَوْمٍ مُؤْمِنِينَ وَإِنَّا إِنْ شَاءَ اللَّهُ بِكُمْ لَاحِقُونَ أَنْتُمْ لَنَا فرَطٌ وَنَحْنُ لَكُمْ تَبَعٌ";
+        artiTeks = "Semoga keselamatan tercurah kepada kalian, wahai penghuni kampung orang-orang mukmin. Kami insya Allah akan menyusul kalian. Kalian telah mendahului kami dan kami akan mengikuti kalian.";
+      }
+      else if (judul == "2. Membaca Hadiah Fatihah") {
+        teksArab = "إِلَى حَضْرَةِ النَّبِيِّ الْمُصْطَفَى صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ وَإِلَى أَرْوَاحِ آبَائِنَا وَأُمَّهَاتِنَا وَمَشَايِخِنَا وَأَهْلِ هٰذِهِ الْقُبُوْرِ مِنَ الْمُسْلِمِيْنَ وَالْمُسْلِمَاتِ، لَهُمُ الْفَاتِحَةُ...";
+        artiTeks = "Khususon kepada hadirat Nabi pilihan Muhammad SAW, dan kepada roh-roh bapak kami, ibu kami, guru-guru kami, dan penghuni kubur ini dari kaum muslimin dan muslimat, bagi mereka Al-Fatihah...";
+      }
+      else if (judul == "3. Membaca Surah Yasin (Awal)") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. يٰسۤ (١) وَالْقُرْاٰنِ الْحَكِيْمِ (٢) اِنَّكَ لَمِنَ الْمُرْسَلِيْنَ (٣) عَلٰى صِرَاطٍ مُّسْتَقِيْمٍ (٤) تَنْزِيْلَ الْعَزِيْزِ الرَّحِيْمِ (٥)";
+        artiTeks = "1. Yaa Siiin. \n2. Demi Al-Qur'an yang penuh hikmah. \n3. Sungguh, engkau (Muhammad) adalah salah seorang dari rasul-rasul. \n4. (yang berada) di atas jalan yang lurus. \n5. (Sebagai wahyu) yang diturunkan oleh (Allah) Yang Maha Perkasa, Maha Penyayang.";
+      }
+      else if (judul == "4. Doa Khusus Ziarah Kubur") {
+        teksArab = "اَللَّهُمَّ اغْفِرْ لَهُمْ وَارْحَمْهُمْ وَعَافِهِمْ وَاعْفُ عَنْهُمْ اَللَّهُمَّ أَنْزِلِ الرَّحْمَةَ وَالْمَغْفِرَةَ عَلَى أَهْلِ الْقُبُوْرِ مِنْ أَهْلِ لَا إِلَهَ إِلَّا اللهُ مُحَمَّدٌ رَسُوْلُ اللهِ";
+        artiTeks = "Ya Allah, ampunilah mereka, sayangilah mereka, sejahterakanlah mereka, dan maafkanlah mereka. Ya Allah, turunkanlah rahmat dan ampunan kepada ahli kubur dari golongan orang-orang yang mengucapkan 'Laa ilaha illallah Muhammadur Rasulullah'.";
       }
 
       return Scaffold(
