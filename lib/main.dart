@@ -387,11 +387,33 @@ class HomePage extends StatefulWidget{
     const AmalanPage({super.key});
     @override
     Widget build(BuildContext context) {
+      final List<String> amalan = [
+        "Amalan Sebelum Tidur",
+        "Sayyidul Iatighfar",
+        "Doa Sapu Jagat",
+        "Doa Kedua Orang Tua",
+      ];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Amalan Mulia'), backgroundColor: Colors.black,
         foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Amalan', style: TextStyle(color: Colors.white))),
+        body: ListView.builder(
+          itemCount: amalan.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
+              title: Text(
+                amalan[index],
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: amalan[index]),
+                ));
+              },
+            );
+          },
+        )
       );
     }
   }
@@ -526,6 +548,24 @@ class HomePage extends StatefulWidget{
       else if (judul == "Sholawat Munjiyat") {
         teksArab = "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
         artiTeks = "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
+      }
+
+      //  -- BAGIAN AMALAN -- 
+      else if (judul == "Amalan Sebelum Tidur") {
+        teksArab = "بِاسْمِكَ اللَّهُمَّ أَحْيَا وَأَمُوتُ (١)";
+        artiTeks = "1. Dengan nama-Mu ya Allah aku hidup dan aku mati. \n(Disunnahkan juga membaca Al-Ikhlas, Al-Falaq, An-Nas, dan Ayat Kursi sebelum tidur).";
+      }
+      else if (judul == "Sayyidul Istighfar") {
+        teksArab = "اَللَّهُمَّ أَنْتَ رَبِّيْ لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِيْ وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوْذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوْءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوْءُ بِذَنْبِيْ فَاغْفِرْ لِيْ فَإِنَّهُ لَا يَغْفِرُ الذُّنُوْبَ إِلَّا أَنْتَ";
+        artiTeks = "Ya Allah, Engkau adalah Tuhanku, tidak ada tuhan yang berhak disembah kecuali Engkau. Engkau yang menciptakanku dan aku adalah hamba-Mu. Aku menetapi perjanjian-Mu dan janji-Mu sesuai kemampuanku. Aku berlindung kepada-Mu dari keburukan perbuatanku, aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku, maka ampunilah aku. Sebab, tidak ada yang dapat mengampuni dosa melainkan Engkau.";
+      }
+      else if (judul == "Doa Sapu Jagat") {
+        teksArab = "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ";
+        artiTeks = "Ya Tuhan kami, berilah kami kebaikan di dunia dan kebaikan di akhirat, dan lindungilah kami dari azab neraka.";
+      }
+      else if (judul == "Doa Kedua Orang Tua") {
+        teksArab = "رَبِّ اغْفِرْ لِيْ وَلِوَالِدَيَّ وَارْحَمْهُمَا كَمَا رَبَّيَانِيْ صَغِيْرًا";
+        artiTeks = "Ya Tuhanku, ampunilah dosaku dan dosa kedua orang tuaku, dan sayangilah mereka sebagaimana mereka berdua telah mendidikku di waktu kecil.";
       }
 
       return Scaffold(
