@@ -574,8 +574,11 @@ class HomePage extends StatefulWidget{
 
       //  -- BAGIAN AMALAN -- 
       else if (judul == "Amalan Sebelum Tidur") {
-        teksArab = "بِاسْمِكَ اللَّهُمَّ أَحْيَا وَأَمُوتُ (١)";
-        artiTeks = "1. Dengan nama-Mu ya Allah aku hidup dan aku mati. \n(Disunnahkan juga membaca Al-Ikhlas, Al-Falaq, An-Nas, dan Ayat Kursi sebelum tidur).";
+        teksArab = "بِاسْمِكَ اللّٰهُمَّ أَحْيَا وَبِاسْمِكَ أَمُوْتُ (١)\n\n"
+                  "اَللّٰهُمَّ قِنِيْ عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ (٢)";
+        artiTeks = "1. Dengan nama-Mu ya Allah aku hidup dan dengan nama-Mu aku mati.\n\n"
+                  "2. Ya Allah, jagalah aku dari siksa-Mu pada hari yang Engkau membangkitkan hamba-hamba-Mu.\n\n"
+                  "Note: Sebelum membaca doa ini, disunnahkan juga membaca Ayat Kursi, Al-Ikhlas, Al-Falaq, dan An-Nas lalu ditiupkan ke telapak tangan dan diusap ke seluruh tubuh.";
       }
       else if (judul == "Sayyidul Istighfar") {
         teksArab = "اَللَّهُمَّ أَنْتَ رَبِّيْ لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِيْ وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوْذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوْءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوْءُ بِذَنْبِيْ فَاغْفِرْ لِيْ فَإِنَّهُ لَا يَغْفِرُ الذُّنُوْبَ إِلَّا أَنْتَ";
@@ -591,7 +594,7 @@ class HomePage extends StatefulWidget{
       }
 
       //-- BAGIAN MAULID & QASHIDAH --
-      else if (judul == "Maulid Simtuddurar(Pembuka)") {
+      else if (judul == "Maulid Simtuddurar (Pembuka)") {
         teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
         artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
       }
