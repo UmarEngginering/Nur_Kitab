@@ -319,11 +319,33 @@ class HomePage extends StatefulWidget{
     @override
 
     Widget build(BuildContext context) {
+      final List<String> wirid = [
+        "Tasbih (Subhanallah)",
+        "Tahmid (Alhandulillah)",
+        "Takbir (Allahu Akbar)",
+        "Tahlil (Laa Ilaha Illallah)",
+        "Ayat Kursi",
+      ];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Wirid Hari Jumat'), backgroundColor: Colors.black,
         foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Wirid', style: TextStyle(color: Colors.white))),
+        body: ListView.builder(
+          itemCount: wirid.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: const Icon(Icons.star_border_purple500_rounded, color: Colors.teal),
+              title: Text(wirid[index], 
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: wirid[index]),
+                ));
+              },
+            );
+          },
+        ),
       );
     }
   }
@@ -443,6 +465,26 @@ class HomePage extends StatefulWidget{
       else if (judul == "Setelah Sholat Iaya") {
         teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
         artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
+      }
+      else if (judul == "Tasbih (Subhanallah)") {
+        teksArab = "سُبْحَانَ اللهِ (٣٣×)";
+        artiTeks = "Maha Suci Allah. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
+      }
+      else if (judul == "Tahmid (Alhamdulillah)") {
+        teksArab = "الْحَمْدُ لِلَّهِ (٣٣×)";
+        artiTeks = "Segala puji bagi Allah. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
+      }
+      else if (judul == "Takbir (Allahu Akbar)") {
+        teksArab = "اللهُ أَكْبَرُ (٣٣×)";
+        artiTeks = "Allah Maha Besar. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
+      }
+      else if (judul == "Tahlil (Laa Ilaha Illallah)") {
+        teksArab = "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ";
+        artiTeks = "Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dan Dia Maha Kuasa atas segala sesuatu.";
+      }
+      else if (judul == "Ayat Kursi") {
+        teksArab = "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ";
+        artiTeks = "Allah, tidak ada tuhan selain Dia. Yang Maha Hidup, yang terus-menerus mengurus (makhluk-Nya), tidak mengantuk dan tidak tidur. Milik-Nya apa yang ada di langit dan apa yang ada di bumi. Tidak ada yang dapat memberi syafaat di sisi-Nya tanpa izin-Nya. Dia mengetahui apa yang di hadapan mereka dan apa yang di belakang mereka, dan mereka tidak mengetahui sesuatu apa pun dari ilmu-Nya melainkan apa yang Dia kehendaki. Kursi-Nya meliputi langit dan bumi. Dan Dia tidak merasa berat memelihara keduanya, Dan Dia Maha Tinggi, Maha Besar.";
       }
 
       return Scaffold(
