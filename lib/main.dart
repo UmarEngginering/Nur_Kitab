@@ -594,7 +594,7 @@ class HomePage extends StatefulWidget{
       }
 
       //-- BAGIAN MAULID & QASHIDAH --
-      else if (judul == "Maulid Simtuddurar (Pembuka)") {
+      else if (judul == "Maulid Simtutdurar (pembuka)") {
         teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
         artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
       }
