@@ -321,7 +321,7 @@ class HomePage extends StatefulWidget{
     Widget build(BuildContext context) {
       final List<String> wirid = [
         "Tasbih (Subhanallah)",
-        "Tahmid (Alhandulillah)",
+        "Tahmid (Alhamdulillah)",
         "Takbir (Allahu Akbar)",
         "Tahlil (Laa Ilaha Illallah)",
         "Ayat Kursi",
@@ -389,7 +389,7 @@ class HomePage extends StatefulWidget{
     Widget build(BuildContext context) {
       final List<String> amalan = [
         "Amalan Sebelum Tidur",
-        "Sayyidul Iatighfar",
+        "Sayyidul Istighfar",
         "Doa Sapu Jagat",
         "Doa Kedua Orang Tua",
       ];
@@ -425,7 +425,7 @@ class HomePage extends StatefulWidget{
         "Maulid Simtutdurar (pembuka)",
         "Qashidah Burdah (Bab 1)",
         "Qashidah Ya Imamarusli",
-        "ashidah Bursro Lana",
+        "Qashidah Busro Lana",
       ];
       return Scaffold(
         backgroundColor: Colors.black,
@@ -527,7 +527,7 @@ class HomePage extends StatefulWidget{
         teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) اَللَّهُمَّ أَجِرْنِي مِنَ النَّارِ (٧×) (٢)";
         artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat... \n2. Ya Allah, lindungilah aku dari api neraka (7x setelah maghrib).";
       }
-      else if (judul == "Setelah Sholat Iaya") {
+      else if (judul == "Setelah Sholat Isya") {
         teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
         artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
       }
@@ -555,7 +555,7 @@ class HomePage extends StatefulWidget{
       }
 
       // -- SHOLAWAT --
-      else if (judul == "Sholawat Ibrihiyah") {
+      else if (judul == "Sholawat Ibrahimiyah") {
         teksArab = "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
         artiTeks = "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
       }
@@ -591,15 +591,15 @@ class HomePage extends StatefulWidget{
       }
 
       //-- BAGIAN MAULID & QASHIDAH --
-      else if (judul == "Maulid Simtuddurar(Pembukaan)") {
+      else if (judul == "Maulid Simtuddurar(Pembuka)") {
         teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
         artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
       }
-      else if (judul == "Qashidah bURDAH (bB 1)") {
+      else if (judul == "Qashidah Burdah (Bab 1)") {
         teksArab = "أَمِنْ تَذَكُّـرِ جِيْـرَانٍ بِـذِيْ سَلَمِ ❁ مَزَجْتَ دَمْعاً جَرَى مِنْ مُقْلَةٍ بِدَمِ \n\nأَمْ هَبَّتِ الرِّيْحُ مِنْ تِلْقَاءِ كَاظِمَةٍ ❁ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ";
         artiTeks = "1. Apakah karena teringat tetangga yang tinggal di Dzi Salam, engkau mengucurkan air mata bercampur darah yang mengalir dari matamu? \n\n2. Ataukah karena angin berembus dari arah Kazhimah, dan kilat berkilauan di dalam kegelapan malam dari gunung Idham?.";
       }
-      else if (judul == "Qashidah Ya Imamarrusli") {
+      else if (judul == "Qashidah Ya Imamarusli") {
         teksArab ="يَا إِمَامَ الرُّسْلِ يَا سَنَدِيْ ❁ أَنْتَ بَابُ اللهِ مُعْتَمَدِيْ\n"
                   "فَبِدُنْيَايَ وَآخِرَتِيْ ❁ يَا رَسُوْلَ اللهِ خُذْ بِيَدِيْ (١)\n\n"
                   "قَسَمًا بِالنَّجْمِ حِيْنَ هَوَى ❁ مَا الْمُعَافَى وَالسَّقِيْمُ سَوَى\n"
