@@ -336,7 +336,7 @@ class HomePage extends StatefulWidget{
             return ListTile(
               leading: const Icon(Icons.star_border_purple500_rounded, color: Colors.teal),
               title: Text(wirid[index], 
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
               onTap: () {
@@ -354,11 +354,32 @@ class HomePage extends StatefulWidget{
 
     @override
     Widget build(BuildContext context) {
+      final List<String> sholawat = [
+        "Sholawat Ibrahimiyah",
+        "Sholawat Jibril",
+        "Sholawat Nariyah",
+        "Sholawat Munjiyat",
+      ];
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(title: const Text('Kumpulan Sholawat'), backgroundColor: Colors.black,
         foregroundColor: Colors.white),
-        body: const Center(child: Text('Halaman Sholawat', style: TextStyle(color: Colors.white))),
+        body: ListView.builder(
+          itemCount: sholawat.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              leading: const Icon(Icons.favorite_border_rounded, color: Colors.teal),
+              title: Text(
+                sholawat[index],
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: sholawat[index]),
+                ));
+              },
+            );
+          },),
       );
     }
   }
@@ -466,6 +487,8 @@ class HomePage extends StatefulWidget{
         teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
         artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
       }
+
+      // -- BAGIAN WIRID --
       else if (judul == "Tasbih (Subhanallah)") {
         teksArab = "سُبْحَانَ اللهِ (٣٣×)";
         artiTeks = "Maha Suci Allah. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
@@ -485,6 +508,24 @@ class HomePage extends StatefulWidget{
       else if (judul == "Ayat Kursi") {
         teksArab = "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ";
         artiTeks = "Allah, tidak ada tuhan selain Dia. Yang Maha Hidup, yang terus-menerus mengurus (makhluk-Nya), tidak mengantuk dan tidak tidur. Milik-Nya apa yang ada di langit dan apa yang ada di bumi. Tidak ada yang dapat memberi syafaat di sisi-Nya tanpa izin-Nya. Dia mengetahui apa yang di hadapan mereka dan apa yang di belakang mereka, dan mereka tidak mengetahui sesuatu apa pun dari ilmu-Nya melainkan apa yang Dia kehendaki. Kursi-Nya meliputi langit dan bumi. Dan Dia tidak merasa berat memelihara keduanya, Dan Dia Maha Tinggi, Maha Besar.";
+      }
+
+      // -- SHOLAWAT --
+      else if (judul == "Sholawat Ibrihiyah") {
+        teksArab = "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
+        artiTeks = "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
+      }
+      else if (judul == "Sholawat Jibril") {
+        teksArab = "صَلَّى اللهُ عَلَى مُحَمَّدٍ";
+        artiTeks = "Semoga Allah memberikan rahmat-Nya kepada Nabi Muhammad. \n(Sholawat singkat penarik rezeki.";
+      }
+      else if (judul == "Sholawat Nariyah") {
+        teksArab = "اَللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ";
+        artiTeks = "Ya Allah, limpahkanlah shalawat yang sempurna dan kesejahteraan yang paripurna kepada junjungan kami Nabi Muhammad, yang dengan perantaraannya semua ikatan terlepas, segala kesusahan dihilangkan, segala kebutuhan dipenuhi, segala keinginan dan akhir yang baik tercapai, dan hujan diturunkan berkat wajahnya yang mulia. Begitu pula kepada keluarga dan para sahabatnya pada setiap kedipan mata dan hembusan nafas, sebanyak jumlah semua yang Engkau ketahui.";
+      }
+      else if (judul == "Sholawat Munjiyat") {
+        teksArab = "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
+        artiTeks = "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
       }
 
       return Scaffold(
