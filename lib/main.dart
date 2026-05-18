@@ -80,7 +80,7 @@ class HomePage extends StatefulWidget{
       return ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          _buildWideCard(context,'Al-Qur\'an', AlQuranPage(), false),
+          _buildWideCard(context,'Surah Pendek', SurahPendekPage(), false),
           _buildWideCard(context, 'Dzikir Siang-Malam', DzikirPage(), false),
           _buildWideCard(context, 'Wirid Hari Jumat',  WiridPage(),false),
           _buildWideCard(context, 'Kumpulan Bacaan Sholawat', SholawatPage(), true),
@@ -248,17 +248,30 @@ class HomePage extends StatefulWidget{
     }
   }
     
-  class AlQuranPage extends StatelessWidget {
-    const AlQuranPage({super.key});
+  class SurahPendekPage extends StatelessWidget {
+    const SurahPendekPage({super.key});
     @override
 
 
     Widget build(BuildContext context) {
-      final List<String> surah = ["Al-Fatihah",
-      "Al-Ikhlas", "Al-Falaq", "An-Nas"];
+      final List<String> surah = [
+        "Al-Fatihah",
+        "At-Takatsur",
+        "Al-'Ashr",
+        "Al-Humazah",
+        "Al-Fil",
+        "Al-Quraisy",
+        "Al-Ma'un",
+        "Al-Kautsar",
+        "Al-Kafirun",
+        "An-Nasr",
+        "Al-Lahab",
+        "Al-Ikhlas", 
+        "Al-Falaq", 
+        "An-Nas"];
       return Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Al-Qur\'an'), backgroundColor: Colors.black, foregroundColor: Colors.white),
+        appBar: AppBar(title: const Text('Surah Pendek'), backgroundColor: Colors.black, foregroundColor: Colors.white),
         body: ListView.builder(
           itemCount: surah.length,
           itemBuilder: (context, index) {
@@ -533,6 +546,46 @@ class HomePage extends StatefulWidget{
       if (judul == "Al-Fatihah") {
         teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ (١) اَلْحَمْدُ لِلّٰهِ رَبِّ الْعٰلَمِيْنَ (٢) الرَّحْمٰنِ الرَّحِيْمِ (٣) مٰلِكِ يَوْمِ الدِّيْنِ (٤) اِيَّاكَ نَعْبُدُ وَاِيَّاكَ نَسْتَعِيْنُ (٥) اِهْدِنَا الصِّرَاطَ الْمُسْتَقِيْمَ (٦) صِرَاطَ الَّذِيْنَ اَنْعَمْتَ عَلَيْهِمْ ەۙ غَيْرِ الْمَغْضُوْبِ عَلَيْهِمْ وَلَا الضَّاۤلِّيْنَ (٧)";
         artiTeks = "1. Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. 2. Segala puji bagi Allah, Tuhan seluruh alam. 3. Yang Maha Pengasih, Maha Penyayang. 4. Pemilik hari pembalasan. 5. Hanya kepada Engkaulah kami menyembah dan hanya kepada Engkaulah kami mohon pertolongan. 6. Bimbinglah kami ke jalan yang lurus. 7. (yaitu) jalan orang-orang yang telah Engkau beri nikmat, bukan (jalan) mereka yang dimurkai dan bukan (pula jalan) mereka yang sesat.";
+      }
+      else if (judul == "At-Takatsur") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْهٰىكُمُ التَّكَاثُرُ (١) حَتّٰى زُرْتُمُ الْمَقَابِرَ (٢) كَلَّا سَوْفَ تَعْلَمُوْنَ (٣) ثُمَّ كَلَّا Sَوْفَ تَعْلَمُوْنَ (٤) كَلَّا لَوْ تَعْلَمُوْنَ عِلْمَ الْيَقِيْنِ (٥) لَتَرَوُنَّ الْجَحِيْمَ (٦) ثُمَّ لَتَرَوُنَّهَا عَيْنَ الْيَقِيْنِ (٧) ثُمَّ لَتُسْـَٔلُنَّ يَوْمَئِذٍ عَنِ النَّعِيْمِ (٨)";
+        artiTeks = "1. Bermegah-megahan telah melalaikan kamu, 2. sampai kamu masuk ke dalam kubur. 3. Sekali-kali tidak! Kelak kamu akan mengetahui (akibat perbuatanmu itu), 4. kemudian sekali-kali tidak! Kelak kamu akan mengetahui. 5. Sekali-kali tidak! Sekiranya kamu mengetahui dengan pasti, 6. niscaya kamu benar-benar akan melihat neraka Jahim, 7. kemudian kamu benar-benar akan melihatnya dengan mata kepala sendiri, 8. kemudian kamu benar-benar akan ditanya pada hari itu tentang kenikmatan (yang megah di dunia itu).";
+      }
+      else if (judul == "Al-'Ashr") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. وَالْعَصْرِ (١) اِنَّ الْاِنْسَانَ لَفِيْ خُسْرٍ (٢) اِلَّا الَّذِيْنَ اٰمَنُوْا وَعَمِلُوا الصّٰلِحٰتِ وَتَوَاصَوْا بِالْحَقِّ ەۙ وَتَوَاصَوْا بِالصَّبْرِ (٣)";
+        artiTeks = "1. Demi masa, 2. sungguh, manusia berada dalam kerugian, 3. kecuali orang-orang yang beriman dan mengerjakan kebajikan serta saling menasihati untuk kebenaran dan saling menasihati untuk kesabaran.";
+      }
+      else if (judul == "Al-Humazah") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. وَيْلٌ لِّكُلِّ هُمَزَةٍ لُّمَزَةٍ (١) ۨالَّذِيْ جَمَعَ مَالًا وَّعَدَّدَهٗ (٢) يَحْسَبُ اَنَّ مَالَهٗٓ اَخْلَدَهٗ (٣) كَلَّا لَيُنْۢبَذَنَّ فِى الْحُطَمَةِ (٤) وَمَآ اَدْرٰىكَ مَا الْحُطَمَةُ (٥) نَارُ اللّٰهِ الْمُوْقَدَةُ (٦) الَّتِيْ تَطَّلِعُ عَلَى الْاَفْـِٕدَةِ (٧) اِنَّهَا عَلَيْهِمْ مُّؤْصَدَةٌ (٨) فِيْ عَمَدٍ مُّمَدَّدَةٍ (٩)";
+        artiTeks = "1. Celakalah bagi setiap pengumpat dan pencela, 2. yang mengumpulkan harta dan membilang-bilangnya, 3. dia (manusia) mengira bahwa hartanya itu dapat mengekalkannya. 4. Sekali-kali tidak! Pasti dia akan dilemparkan ke dalam (neraka) Hutamah. 5. Dan tahukah kamu apakah (neraka) Hutamah itu? 6. (Yaitu) api (azab) Allah yang dinyalakan, 7. yang membakar sampai ke hati. 8. Sungguh, api itu ditutup rapat atas diri mereka, 9. (sedang mereka itu) diikat pada tiang-tiang yang panjang.";
+      }
+      else if (judul == "Al-Fil") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِاَصْحٰبِ الْفِيْلِ (١) اَلَمْ يَجْعَلْ كَيْدَهُمْ فِيْ تَضْلِيْلٍ (٢) وَّاَرْسَلَ عَلَيْهِمْ طَيْرًا اَبَابِيْلَ (٣) تَرْمِيْهِمْ بِحِجَارَةٍ مِّنْ سِجِّيْلٍ (٤) فَجَعَلَهُمْ كَعَصْفٍ مَّأْكُوْلٍ (٥)";
+        artiTeks = "1. Tidakkah engkau (Muhammad) perhatikan bagaimana Tuhanmu telah bertindak terhadap pasukan bergajah? 2. Bukankah Dia telah menjadikan tipu daya mereka itu sia-sia? 3. Dan Dia mengirimkan kepada mereka burung yang berbondong-bondong, 4. yang melempari mereka dengan batu dari tanah liat yang dibakar, 5. sehingga mereka dijadikan-Nya seperti daun-daun yang dimakan (ulat).";
+      }
+      else if (judul == "Al-Quraisy") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. لِاِيْلٰفِ قُرَيْشٍ (١) اٖلٰفِهِمْ رِحْلَةَ الشِّتَاۤءِ وَالصَّيْفِ (٢) فَلْيَعْبُدُوْا رَبَّ هٰذَا الْبَيْتِ (٣) الَّذِيْٓ اَطْعَمَهُمْ مِّنْ جُوْعٍ ەۙ وَّاٰمَنَهُمْ مِّنْ خَوْفٍ (٤)";
+        artiTeks = "1. Karena kebiasaan orang-orang Quraisy, 2. (yaitu) kebiasaan mereka bepergian pada musim dingin dan musim panas. 3. Maka hendaklah mereka menyembah Tuhan (pemilik) rumah ini (Ka'bah), 4. Yang telah memberi makanan kepada mereka untuk menghilangkan lapar dan mengamankan mereka dari rasa ketakutan.";
+      }
+      else if (judul == "Al-Ma'un") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. اَرَاَيْتَ الَّذِيْ يُكَذِّبُ بِالدِّيْنِ (١) فَذٰلِكَ الَّذِيْ يَدُعُّ الْيَتِيْمَ (٢) وَلَا يَحُضُّ عَلٰى طَعَامِ الْمِسْكِيْنِ (٣) فَوَيْلٌ لِّلْمُصَلِّيْنَ (٤) الَّذِيْنَ هُمْ عَنْ صَلَاتِهِمْ سَاهُوْنَ (٥) الَّذِيْنَ هُمْ يُرَاۤءُوْنَ (٦) وَيَمْنَعُوْنَ الْمَاعُوْنَ (٧)";
+        artiTeks = "1. Tahukah kamu (orang) yang mendustakan agama? 2. Maka itulah orang yang menghardik anak yatim, 3. dan tidak mendorong memberi makan orang miskin. 4. Maka celakalah orang yang sholat, 5. (yaitu) orang-orang yang lalai terhadap sholatnya, 6. yang berbuat riya, 7. dan enggan (memberikan) bantuan barang berguna.";
+      }
+      else if (judul == "Al-Kautsar") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. اِنَّآ اَعْطَيْنٰكَ الْكَوْتَثَرَ (١) فَصَلِّ لِرَبِّكَ وَانْحَرْ (٢) اِنَّ شَانِئَكَ هُوَ الْاَبْتَرُ (٣)";
+        artiTeks = "1. Sungguh, Kami telah memberimu (Muhammad) nikmat yang banyak. 2. Maka laksanakanlah sholat karena Tuhanmu, dan berkurbanlah! 3. Sungguh, orang-orang yang membencimu dialah yang terputus (dari rahmat Allah).";
+      }
+      else if (judul == "Al-Kafirun") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ يٰٓاَيُّهَا الْكٰفِرُوْنَ (١) لَآ اَعْبُدُ مَا تَعْبُدُوْنَ (٢) وَلَآ اَنْتُمْ عٰبِدُوْنَ مَآ اَعْبُدُ (٣) وَلَآ اَنَا۠ عَابِدٌ مَّا عَبَدْتُّمْ (٤) وَلَآ اَنْتُمْ عٰبِدُوْنَ مَآ اَعْبُدُ (٥) لَكُمْ دِيْنُكُمْ وَلِيَ دِيْنِ (٦)";
+        artiTeks = "1. Katakanlah (Muhammad), 'Wahai orang-orang kafir! 2. Aku tidak akan menyembah apa yang kamu sembah, 3. dan kamu bukan penyembah apa yang aku sembah, 4. dan aku tidak pernah menjadi penyembah apa yang kamu sembah, 5. dan kamu tidak pernah (pula) menjadi penyembah apa yang aku sembah. 6. Untukmu agamamu, dan untukku agamaku.";
+      }
+      else if (judul == "An-Nasr") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. اِذَا جَاۤءَ نَصْرُ اللّٰهِ وَالْفَتْحُ (١) وَرَاَيْتَ النَّاسَ يَدْخُلُوْنَ فِيْ دِيْنِ اللّٰهِ اَفْوَاجًا (٢) فَسَبِّحْ بِحَمْدِ رَبِّكَ وَاسْتَغْفِرْهُ اِنَّهٗ كَانَ تَوَّابًا (٣)";
+        artiTeks = "1. Apabila telah datang pertolongan Allah dan kemenangan, 2. dan engkau melihat manusia berbondong-bondong masuk agama Allah, 3. maka bertasbihlah dengan memuji Tuhanmu dan mohonlah ampunan kepada-Nya. Sungguh, Dia Maha Penerima tobat.";
+      }
+      else if (judul == "Al-Lahab") {
+        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. تَبَّتْ يَدَآ اَبِيْ لَهَبٍ وَّتَبَّ (١) مَآ اَغْنٰى عَنْهُ مَالُهٗ وَمَا كَسَبَ (٢) سَيَصْلٰى نَارًا ذَاتَ لَهَبٍ (٣) وَّامْرَاَتُهٗ ە حَمَّالَةَ الْحَطَبِ (٤) فِيْ جِيْدِهَا حَبْلٌ مِّنْ مَّسَدٍ (٥)";
+        artiTeks = "1. Binasalah kedua tangan Abu Lahab dan benar-benar binasa dia! 2. Tidaklah berguna baginya hartanya dan apa yang dia usahakan. 3. Kelak dia akan memasuki api yang bergejolak (neraka), 4. dan (begitu pula) istrinya, pembawa kayu bakar (penyebar fitnah), 5. di lehernya ada tali dari sabut yang dipintal.";
       }
       else if (judul == "Al-Ikhlas") {
         teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. قُلْ هُوَ اللّٰهُ اَحَدٌ (١) اَللّٰهُ الصَّمَدُ (٢) لَمْ يَلِدْ وَلَمْ يُولَدْ (٣) وَلَمْ يَكُنْ لَّهٗ كُفُوًا اَحَدٌ (٤)";
