@@ -841,7 +841,6 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
           ? const Center(child: CircularProgressIndicator(color: Colors.teal))
           : Column(
               children: [
-               
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -874,7 +873,7 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
                                 margin: const EdgeInsets.all(20),
                                 padding: const EdgeInsets.all(20),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF111111), // Lingkaran pusat ayat
+                                  color: Color(0xFF111111), 
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
