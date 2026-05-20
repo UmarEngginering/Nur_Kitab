@@ -184,18 +184,63 @@ class HomePage extends StatefulWidget{
         'Maghrib': '17:35', 
         'Isya': '18:47',
       };
+      final sekarang = DateTime.now();
+    final sekarangDalamMenit = sekarang.hour * 60 + sekarang.minute;
+
+    int keMenit(String waktu) {
+      final bagian = waktu.split(':');
+      return int.parse(bagian[0]) * 60 + int.parse(bagian[1]);
+    }
+
+    String waktuSholatBerikutnya = prayers['Imsak']!; 
+    String namaSholatBerikutnya = 'Imsak';
+
+    if (sekarangDalamMenit < keMenit(prayers['Imsak']!)) {
+  waktuSholatBerikutnya = prayers['Imsak']!;
+  namaSholatBerikutnya = "Imsak"; 
+} else if (sekarangDalamMenit < keMenit(prayers['subuh']!)) {
+  waktuSholatBerikutnya = prayers['subuh']!;
+  namaSholatBerikutnya = "Subuh"; 
+} else if (sekarangDalamMenit < keMenit(prayers['Terbit']!)) {
+  waktuSholatBerikutnya = prayers['Terbit']!;
+  namaSholatBerikutnya = "Terbit"; 
+} else if (sekarangDalamMenit < keMenit(prayers['Dzuhur']!)) {
+  waktuSholatBerikutnya = prayers['Dzuhur']!;
+  namaSholatBerikutnya = "Dzuhur"; 
+} else if (sekarangDalamMenit < keMenit(prayers['Ashar']!)) {
+  waktuSholatBerikutnya = prayers['Ashar']!;
+  namaSholatBerikutnya = "Ashar"; 
+} else if (sekarangDalamMenit < keMenit(prayers['Maghrib']!)) {
+  waktuSholatBerikutnya = prayers['Maghrib']!;
+  namaSholatBerikutnya = "Maghrib";
+} else if (sekarangDalamMenit < keMenit(prayers['Isya']!)) {
+  waktuSholatBerikutnya = prayers['Isya']!;
+  namaSholatBerikutnya = "Isya"; 
+} else {
+  waktuSholatBerikutnya = prayers['Imsak']!;
+  namaSholatBerikutnya = "Imsak";
+}
       return Column(
         children: [
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             color: Colors.teal[900],
-            child: const Column(
+            child: Column(
               children: [
-                Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16)),
+                const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16)),
                 SizedBox(height: 10),
-                Text('17:35', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold)),
-                Text('Menuju Maghrib', style: TextStyle(color: Colors.tealAccent)),
+                Text(waktuSholatBerikutnya, style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, 
+                color: Colors.white)),
+                const SizedBox(height: 5),
+                Text(
+                  "Menuju $namaSholatBerikutnya",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                    fontStyle: FontStyle.italic,
+                  ),
+                )
               ],
             ),
           ),
