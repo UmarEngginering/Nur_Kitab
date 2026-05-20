@@ -250,8 +250,7 @@ class HomePage extends StatefulWidget{
     }
   }
     
-
-class SurahPendekPage extends StatefulWidget {
+  class SurahPendekPage extends StatefulWidget {
   const SurahPendekPage({super.key});
 
   @override
@@ -268,7 +267,7 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
     _ambilDataAlquran();
   }
 
-
+ 
   Future<void> _ambilDataAlquran() async {
     try {
       final respon = await http.get(Uri.parse('https://equran.id/api/v2/surat'));
@@ -316,7 +315,6 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
                     style: const TextStyle(color: Colors.teal, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   onTap: () {
-                    // Ketika diklik, langsung oper data nomor surah & namanya ke Halaman Tampilan Baru
                     Navigator.push(context, MaterialPageRoute(
                       builder: (context) => HalamanMubarakQuran(
                         nomorSurah: surah['nomor'], 
@@ -583,6 +581,8 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
       String teksArab = "";
       String artiTeks = "";
 
+
+      // -- BAGIAN DZIKIR --
       if (judul == "Dzikir Pagi") {
         teksArab = "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ (١)";
         artiTeks = "1. Kami memasuki waktu pagi dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya.";
@@ -841,6 +841,7 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
           ? const Center(child: CircularProgressIndicator(color: Colors.teal))
           : Column(
               children: [
+              
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -873,7 +874,7 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
                                 margin: const EdgeInsets.all(20),
                                 padding: const EdgeInsets.all(20),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF111111), 
+                                  color: Color(0xFF111111), // Lingkaran pusat ayat
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
