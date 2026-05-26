@@ -10,7 +10,7 @@ class NurKitabApp extends StatelessWidget {
   const NurKitabApp({super.key});
 
   @override
-  Widget build( BuildContext context) {
+  Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Nur_kitab',
@@ -24,92 +24,107 @@ class NurKitabApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget{
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
-  }
+}
 
-  class _HomePageState extends State<HomePage> {
-    int currentIndex = 0;
+class _HomePageState extends State<HomePage> {
+  int currentIndex = 0;
 
-    @override
-    Widget build(BuildContext context) {
-      final pages = [
-        const HomeContent(),
-        const PrayerSchedulePage(),
-        const ProfilePage(),
-      ];
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          leading: const Icon(Icons.search, color: Colors.teal),
-          title: const Text(
-            'نورالکتاب',
-            style: TextStyle(fontFamily: 'Serif',
-            color: Colors.teal, fontSize: 24),          
+  // State Utama Pengaturan Aplikasi (Mengontrol Warna, Terjemahan, & Ukuran Font)
+  bool isDarkMode = true;
+  bool tampilkanTerjemahan = true;
+  double skalaFont = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // Penyesuaian tema warna dinamis berdasarkan toggle settings
+    final warnaBackground = isDarkMode ? Colors.black : Colors.white;
+    final warnaAppBar = isDarkMode ? Colors.black : Colors.teal;
+    final warnaTeksAppBar = isDarkMode ? Colors.teal : Colors.white;
+    final warnaNavBg = isDarkMode ? Colors.black : Colors.grey[200];
+    final warnaNavUnselected = isDarkMode ? Colors.grey : Colors.grey[600];
+
+    // List Halaman Aplikasi dengan melemparkan parameter state ke halaman terkait
+    final pages = [
+      HomeContent(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode),
+      const PrayerSchedulePage(),
+      ProfilePage(
+        isDarkMode: isDarkMode,
+        tampilkanTerjemahan: tampilkanTerjemahan,
+        skalaFont: skalaFont,
+        onThemeChanged: (nilai) => setState(() => isDarkMode = nilai),
+        onTranslationChanged: (nilai) => setState(() => tampilkanTerjemahan = nilai),
+        onFontSizeChanged: (nilai) => setState(() => skalaFont = nilai),
+      ),
+    ];
+
+    return Scaffold(
+      backgroundColor: warnaBackground,
+      appBar: AppBar(
+        backgroundColor: warnaAppBar,
+        elevation: 0,
+        title: Text(
+          'نورالکتاب',
+          style: TextStyle(fontFamily: 'Serif', color: warnaTeksAppBar, fontSize: 24),          
         ),
         centerTitle: true,
-        actions: const [
-          Icon(Icons.settings, color: Colors.teal),
-          SizedBox(width: 16),
-        ],
       ),
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
-        backgroundColor: Colors.black,
+        backgroundColor: warnaNavBg,
         selectedItemColor: Colors.teal,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) => setState(() => 
-        currentIndex = index), 
+        unselectedItemColor: warnaNavUnselected,
+        onTap: (index) => setState(() => currentIndex = index), 
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Beranda'),
           BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Jadwal'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Pengaturan'), 
         ],    
+      ),
+    );
+  }
+}
+
+class HomeContent extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const HomeContent({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        _buildWideCard(context, 'Al-Qur\'an', SurahPendekPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), false),
+        _buildWideCard(context, 'Kumpulan Bacaan Sholawat', SholawatPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), true),
+        
+        Row(
+          children: [
+            Expanded(child: _buildSquareCard(context, 'Maulid & Qashidah', MaulidPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), false)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildSquareCard(context, 'Hizib & Ratib', HizibPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), true)),
+          ],
         ),
-      );
-    }
+      ],
+    );
   }
 
-  class HomeContent extends StatelessWidget {
-    const HomeContent({super.key});
-
-    @override
-    Widget build(BuildContext context) {
-      return ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          _buildWideCard(context,'Al-Qur\'an', SurahPendekPage(), false),
-          _buildWideCard(context, 'Dzikir Siang-Malam', DzikirPage(), false),
-          _buildWideCard(context, 'Wirid Hari Jumat',  WiridPage(),false),
-          _buildWideCard(context, 'Kumpulan Bacaan Sholawat', SholawatPage(), true),
-          
-          Row(
-            children: [
-              Expanded(child: _buildSquareCard(context,'Amalan Mulia', AmalanPage(), false)),
-              const SizedBox(width: 8),
-              Expanded(child: _buildSquareCard(context, 'Maulid & Qashidah', MaulidPage(), false)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: _buildSquareCard(context, 'Tuntunan Ziarah', TuntunanPage(), false)),
-              const SizedBox(width: 8),
-              Expanded(child: _buildSquareCard(context, 'Hizib & Ratib', HizibPage(), true)),
-            ],
-          ),
-        ],
-      );
-    }
-
-    Widget _buildWideCard(BuildContext context, title, Widget targetPage, bool isNew) {
-      return GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
-        child: Container(
+  Widget _buildWideCard(BuildContext context, String title, Widget targetPage, bool isNew) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
+      child: Container(
         height: 100,
         margin: const EdgeInsets.only(bottom: 8),
         decoration: _cardDecoration(),
@@ -120,15 +135,15 @@ class HomePage extends StatefulWidget{
               child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
-          ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    Widget _buildSquareCard(BuildContext context, title, Widget targetPage, bool isNew) {
-      return GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
-        child: Container(
+  Widget _buildSquareCard(BuildContext context, String title, Widget targetPage, bool isNew) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
+      child: Container(
         height: 120,
         decoration: _cardDecoration(),
         child: Stack(
@@ -142,49 +157,49 @@ class HomePage extends StatefulWidget{
             ),
           ],
         ),
-        ),
-      );
-    }
+      ),
+    );
+  }
 
-    BoxDecoration _cardDecoration() {
-      return BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(8),
-        image: const DecorationImage(
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.grey[900],
+      borderRadius: BorderRadius.circular(8),
+      image: const DecorationImage(
         image: NetworkImage('https://cdn.prod.website-files.com/65af5f0812c914d3fef6a68c/65f27c26e1af10be0127caf2_5.%20Menggali%20Kearifan%20Spiritual%20dalam%20Petunjuk%20Al-Quran.jpg'),
         opacity: 0.3,
         fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    Widget _badgeNew() {
-      return Positioned(
-        top: 8, left: 8,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(color: Colors.teal[700], borderRadius: BorderRadius.circular(4)),
-          child: const Text('baru', style: TextStyle(fontSize: 10)),
-        ),
-      );
-    }
+      ),
+    );
   }
 
-  class PrayerSchedulePage extends StatelessWidget {
-    const PrayerSchedulePage({super.key});
+  Widget _badgeNew() {
+    return Positioned(
+      top: 8, left: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(color: Colors.teal[700], borderRadius: BorderRadius.circular(4)),
+        child: const Text('baru', style: TextStyle(fontSize: 10, color: Colors.white)),
+      ),
+    );
+  }
+}
 
-    @override
-    Widget build(BuildContext context) {
-      final prayers = {
-        'Imsak': '04:10', 
-        'subuh': '04:20', 
-        'Terbit': '05:35',
-        'Dzuhur': '11:38', 
-        'Ashar': '14:58', 
-        'Maghrib': '17:35', 
-        'Isya': '18:47',
-      };
-      final sekarang = DateTime.now();
+class PrayerSchedulePage extends StatelessWidget {
+  const PrayerSchedulePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final prayers = {
+      'Imsak': '04:10', 
+      'subuh': '04:20', 
+      'Terbit': '05:35',
+      'Dzuhur': '11:38', 
+      'Ashar': '14:58', 
+      'Maghrib': '17:35', 
+      'Isya': '18:47',
+    };
+    final sekarang = DateTime.now();
     final sekarangDalamMenit = sekarang.hour * 60 + sekarang.minute;
 
     int keMenit(String waktu) {
@@ -196,107 +211,199 @@ class HomePage extends StatefulWidget{
     String namaSholatBerikutnya = 'Imsak';
 
     if (sekarangDalamMenit < keMenit(prayers['Imsak']!)) {
-  waktuSholatBerikutnya = prayers['Imsak']!;
-  namaSholatBerikutnya = "Imsak"; 
-} else if (sekarangDalamMenit < keMenit(prayers['subuh']!)) {
-  waktuSholatBerikutnya = prayers['subuh']!;
-  namaSholatBerikutnya = "Subuh"; 
-} else if (sekarangDalamMenit < keMenit(prayers['Terbit']!)) {
-  waktuSholatBerikutnya = prayers['Terbit']!;
-  namaSholatBerikutnya = "Terbit"; 
-} else if (sekarangDalamMenit < keMenit(prayers['Dzuhur']!)) {
-  waktuSholatBerikutnya = prayers['Dzuhur']!;
-  namaSholatBerikutnya = "Dzuhur"; 
-} else if (sekarangDalamMenit < keMenit(prayers['Ashar']!)) {
-  waktuSholatBerikutnya = prayers['Ashar']!;
-  namaSholatBerikutnya = "Ashar"; 
-} else if (sekarangDalamMenit < keMenit(prayers['Maghrib']!)) {
-  waktuSholatBerikutnya = prayers['Maghrib']!;
-  namaSholatBerikutnya = "Maghrib";
-} else if (sekarangDalamMenit < keMenit(prayers['Isya']!)) {
-  waktuSholatBerikutnya = prayers['Isya']!;
-  namaSholatBerikutnya = "Isya"; 
-} else {
-  waktuSholatBerikutnya = prayers['Imsak']!;
-  namaSholatBerikutnya = "Imsak";
-}
-      return Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            color: Colors.teal[900],
-            child: Column(
-              children: [
-                const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 10),
-                Text(waktuSholatBerikutnya, style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold, 
-                color: Colors.white)),
-                const SizedBox(height: 5),
-                Text(
-                  "Menuju $namaSholatBerikutnya",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
-                  ),
-                )
-              ],
-            ),
+      waktuSholatBerikutnya = prayers['Imsak']!;
+      namaSholatBerikutnya = "Imsak"; 
+    } else if (sekarangDalamMenit < keMenit(prayers['subuh']!)) {
+      waktuSholatBerikutnya = prayers['subuh']!;
+      namaSholatBerikutnya = "Subuh"; 
+    } else if (sekarangDalamMenit < keMenit(prayers['Terbit']!)) {
+      waktuSholatBerikutnya = prayers['Terbit']!;
+      namaSholatBerikutnya = "Terbit"; 
+    } else if (sekarangDalamMenit < keMenit(prayers['Dzuhur']!)) {
+      waktuSholatBerikutnya = prayers['Dzuhur']!;
+      namaSholatBerikutnya = "Dzuhur"; 
+    } else if (sekarangDalamMenit < keMenit(prayers['Ashar']!)) {
+      waktuSholatBerikutnya = prayers['Ashar']!;
+      namaSholatBerikutnya = "Ashar"; 
+    } else if (sekarangDalamMenit < keMenit(prayers['Maghrib']!)) {
+      waktuSholatBerikutnya = prayers['Maghrib']!;
+      namaSholatBerikutnya = "Maghrib";
+    } else if (sekarangDalamMenit < keMenit(prayers['Isya']!)) {
+      waktuSholatBerikutnya = prayers['Isya']!;
+      namaSholatBerikutnya = "Isya"; 
+    } else {
+      waktuSholatBerikutnya = prayers['Imsak']!;
+      namaSholatBerikutnya = "Imsak";
+    }
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          color: Colors.teal[900],
+          child: Column(
+            children: [
+              const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16, color: Colors.white)),
+              const SizedBox(height: 10),
+              Text(waktuSholatBerikutnya, style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 5),
+              Text(
+                "Menuju $namaSholatBerikutnya",
+                style: const TextStyle(fontSize: 16, color: Colors.white70, fontStyle: FontStyle.italic),
+              )
+            ],
           ),
-          Expanded(
-            child: ListView(
+        ),
+        Expanded(
+          child: ListView(
             padding: const EdgeInsets.all(16),
             children: prayers.entries.map((e) => 
             Card(
               color: Colors.grey[900],
               child: ListTile(
-                title: Text(e.key),
-                trailing: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                title: Text(e.key, style: const TextStyle(color: Colors.white)),
+                trailing: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
                 leading: const Icon(Icons.notifications_none, color: Colors.teal),
               ),
             )).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  final bool isDarkMode;
+  final bool tampilkanTerjemahan;
+  final double skalaFont;
+  final ValueChanged<bool> onThemeChanged;
+  final ValueChanged<bool> onTranslationChanged;
+  final ValueChanged<double> onFontSizeChanged;
+
+  const ProfilePage({
+    super.key,
+    required this.isDarkMode,
+    required this.tampilkanTerjemahan,
+    required this.skalaFont,
+    required this.onThemeChanged,
+    required this.onTranslationChanged,
+    required this.onFontSizeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final warnaKartu = isDarkMode ? Colors.grey[900] : Colors.grey[100];
+    final warnaJudulMenu = isDarkMode ? Colors.teal : Colors.teal[700];
+    final warnaTeksUtama = isDarkMode ? Colors.white : Colors.black;
+    final warnaTeksSekunder = isDarkMode ? Colors.grey : Colors.grey[700];
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          child: Text(
+            'Pengaturan Aplikasi',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: warnaJudulMenu),
+          ),
+        ),
+        const SizedBox(height: 10),
+        
+        Card(
+          color: warnaKartu,
+          child: SwitchListTile(
+            secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.teal),
+            title: Text('Mode Gelap', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
+            subtitle: Text(isDarkMode ? 'Aplikasi berwarna hitam' : 'Aplikasi berwarna putih', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
+            value: isDarkMode,
+            activeColor: Colors.teal,
+            onChanged: onThemeChanged,
+          ),
+        ),
+        
+        Card(
+          color: warnaKartu,
+          child: SwitchListTile(
+            secondary: const Icon(Icons.translate, color: Colors.teal),
+            title: Text('Tampilkan Terjemahan', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
+            subtitle: Text(tampilkanTerjemahan ? 'Terjemahan teks ditampilkan' : 'Hanya menampilkan teks Arab', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
+            value: tampilkanTerjemahan,
+            activeColor: Colors.teal,
+            onChanged: onTranslationChanged,
+          ),
+        ),
+        
+        Card(
+          color: warnaKartu,
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.format_size, color: Colors.teal),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Ukuran Font Bacaan', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
+                          Text('Atur skala besar kecil khusus teks ayat/bacaan', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text('A', style: TextStyle(color: warnaTeksUtama, fontSize: 12)),
+                    Expanded(
+                      child: Slider(
+                        value: skalaFont,
+                        min: 0.8,
+                        max: 1.6,
+                        divisions: 4,
+                        activeColor: Colors.teal,
+                        inactiveColor: isDarkMode ? Colors.grey[800] : Colors.grey[400],
+                        label: '${(skalaFont * 100).toInt()}%',
+                        onChanged: onFontSizeChanged,
+                      ),
+                    ),
+                    Text('A', style: TextStyle(color: warnaTeksUtama, fontSize: 20, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
-      );
-    }
-  }
+        ),
 
-  class ProfilePage extends StatelessWidget{
-      const ProfilePage({super.key});
-
-      @override
-      Widget build(BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.teal,
-                child: Icon(Icons.person, size: 50, color: Colors.white), 
-              ),
-              const SizedBox(height: 20),
-              const Text("Umar", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const Text('Developer Nur_Kitab', style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 30),
-              Card(
-                color: Colors.grey[900],
-                child: const ListTile(
-                  leading: Icon(Icons.info, color: Colors.teal),
-                  title: Text('Versi Aplikasi'),
-                  trailing: Text('1.0.0'),
-                ),
-              ),
-            ],
+        Card(
+          color: warnaKartu,
+          child: ListTile(
+            leading: const Icon(Icons.info_outline, color: Colors.teal),
+            title: Text('Tentang Aplikasi', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
+            subtitle: Text('Versi 1.0.0', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
           ),
-        );
-    }
+        ),
+      ],
+    );
   }
+}
     
-  class SurahPendekPage extends StatefulWidget {
-  const SurahPendekPage({super.key});
+class SurahPendekPage extends StatefulWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const SurahPendekPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
 
   @override
   State<SurahPendekPage> createState() => _SurahPendekPageState();
@@ -312,7 +419,6 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
     _ambilDataAlquran();
   }
 
- 
   Future<void> _ambilDataAlquran() async {
     try {
       final respon = await http.get(Uri.parse('https://equran.id/api/v2/surat'));
@@ -330,10 +436,10 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
       appBar: AppBar(
         title: const Text('Al-Qur\'an'),
-        backgroundColor: Colors.black,
+        backgroundColor: widget.isDarkMode ? Colors.black : Colors.teal,
         foregroundColor: Colors.white,
       ),
       body: _isLoading
@@ -350,7 +456,7 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  title: Text(surah['namaLatin'], style: const TextStyle(color: Colors.white)),
+                  title: Text(surah['namaLatin'], style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black)),
                   subtitle: Text(
                     "${surah['tempatTurun'].toString().toUpperCase()} • ${surah['jumlahAyat']} Ayat", 
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
@@ -364,6 +470,8 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
                       builder: (context) => HalamanMubarakQuran(
                         nomorSurah: surah['nomor'], 
                         judulSurah: surah['namaLatin'],
+                        skalaFont: widget.skalaFont,
+                        isDarkMode: widget.isDarkMode,
                       ),
                     ));
                   },
@@ -373,476 +481,307 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
     );
   }
 }
-  class DzikirPage extends StatelessWidget {
-    const DzikirPage({super.key});
 
-    @override
-    Widget build(BuildContext context) {
-      final List<Map<String, dynamic>> menuDzikir = [
-        {"judul": "Dzikir Pagi", "ikon": Icons.wb_sunny},
-        {"judul": "Dzikir Petang", "ikon": Icons.nightlight_round},
-        {"judul": "Setelah Sholat Subuh", "ikon": Icons.wb_twilight},
-        {"judul": "Setelah Sholat Dzuhur", "ikon": Icons.wb_sunny_rounded},
-        {"judul": "Setelah Sholat Ashar", "ikon": Icons.wb_cloudy},
-        {"judul": "Setelah Sholat Maghrib", "ikon": Icons.dark_mode},
-        {"judul": "Setelah Sholat Isya", "ikon": Icons.bedtime},
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Dzikir Siang-Malam'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: menuDzikir.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: Icon(menuDzikir[index] ['ikon'], color: Colors.teal),
-              title: Text(menuDzikir[index] ['judul'], 
-              style: const TextStyle(color: Colors.white)
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: menuDzikir[index] ['judul']),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class WiridPage extends StatelessWidget {
-    const WiridPage({super.key});
-    @override
+class SholawatPage extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
 
-    Widget build(BuildContext context) {
-      final List<String> wirid = [
-        "Tasbih (Subhanallah)",
-        "Tahmid (Alhamdulillah)",
-        "Takbir (Allahu Akbar)",
-        "Tahlil (Laa Ilaha Illallah)",
-        "Ayat Kursi",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Wirid Hari Jumat'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: wirid.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.star_border_purple500_rounded, color: Colors.teal),
-              title: Text(wirid[index], 
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: wirid[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class SholawatPage extends StatelessWidget {
-    const SholawatPage({super.key});
+  const SholawatPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
 
-    @override
-    Widget build(BuildContext context) {
-      final List<String> sholawat = [
-        "Sholawat Ibrahimiyah",
-        "Sholawat Jibril",
-        "Sholawat Nariyah",
-        "Sholawat Munjiyat",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Kumpulan Sholawat'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: sholawat.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.favorite_border_rounded, color: Colors.teal),
-              title: Text(
-                sholawat[index],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: sholawat[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class AmalanPage extends StatelessWidget {
-    const AmalanPage({super.key});
-    @override
-    Widget build(BuildContext context) {
-      final List<String> amalan = [
-        "Amalan Sebelum Tidur",
-        "Sayyidul Istighfar",
-        "Doa Sapu Jagat",
-        "Doa Kedua Orang Tua",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Amalan Mulia'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: amalan.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-              title: Text(
-                amalan[index],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: amalan[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class MaulidPage extends StatelessWidget {
-    const MaulidPage({super.key});
-    @override
-    Widget build(BuildContext context) {
-      final List<String> maulid = [
-        "Maulid Simtutdurar (pembuka)",
-        "Qashidah Burdah (Bab 1)",
-        "Qashidah Ya Imamarusli",
-        "Qashidah Busro Lana",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Maulid & Qashidah'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: maulid.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-              title: Text(
-                maulid[index],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: maulid[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class TuntunanPage extends StatelessWidget {
-    const TuntunanPage({super.key});
-    @override
-    Widget build(BuildContext context) {
-      final List<String> tuntunan = [
-        "1. Salam Ahli Kubur",
-        "2. Membaca Hadiah Fatihah",
-        "3. Membaca Surah Yasin (Awal)",
-        "4. Doa Khusus Ziarah Kubur",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Tuntunan Ziarah'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: tuntunan.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-              title: Text(
-                tuntunan[index],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: tuntunan[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  class HizibPage extends StatelessWidget {
-    const HizibPage({super.key});
-    @override
-    Widget build(BuildContext context) {
-      final List<String> hizib = [
-        "Ratib Al-Haddad (Awal)",
-        "Ratib Al-Atthas (Awal)",
-        "Hizib Nashor (Pembuka)",
-        "Hizib Bahar (Pembuka)",
-      ];
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text('Hizib & Ratib'), backgroundColor: Colors.black,
-        foregroundColor: Colors.white),
-        body: ListView.builder(
-          itemCount: hizib.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-              title: Text(
-                hizib[index],
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => IsiBacaanPage(judul: hizib[index]),
-                ));
-              },
-            );
-          },
-        ),
-      );
-    }
-  }
-  
-  class IsiBacaanPage extends StatelessWidget {
-    final String judul;
-    const IsiBacaanPage({super.key, required this.judul});
-
-    @override
-    Widget build(BuildContext context) {
-      String teksArab = "";
-      String artiTeks = "";
-
-
-      // -- BAGIAN DZIKIR --
-      if (judul == "Dzikir Pagi") {
-        teksArab = "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ (١)";
-        artiTeks = "1. Kami memasuki waktu pagi dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya.";
-      }
-      else if (judul == "Dzikir Petang") {
-        teksArab = "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ (١)";
-        artiTeks = "1. Kami memasuki waktu petang dan kerajaan hanya milik Allah, segala puji bagi Allah. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya.";
-      }
-      else if (judul == "Setelah Sholat Subuh") {
-        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) اَللَّهُمَّ أَجِرْنِي مِنَ النَّارِ (٧×) (٢)";
-        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan. \n2. Ya Allah, lindungilah aku dari api neraka (7x setelah subuh).";
-      }
-      else if (judul == "Setelah Sholat Dzuhur") {
-        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ Lَهُ (٢)";
-        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat... \n2. Tidak ada tuhan yang berhak disembah kecuali Allah semata.";
-      }
-      else if (judul == "Setelah Sholat Ashar") {
-        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
-        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
-      }
-      else if (judul == "Setelah Sholat Maghrib") {
-        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١) اَللَّهُمَّ أَجِرْنِي مِنَ النَّارِ (٧×) (٢)";
-        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat... \n2. Ya Allah, lindungilah aku dari api neraka (7x setelah maghrib).";
-      }
-      else if (judul == "Setelah Sholat Isya") {
-        teksArab = "أَسْتَغْفِرُ اللهَ (٣×) اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلاَمُ تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَالإِكْرَامِ (١)";
-        artiTeks = "1. Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau adalah Maha Penyelamat, dari-Mu lah keselamatan. Maha Suci Engkau, wahai Tuhan Pemilik Keagungan dan Kemuliaan.";
-      }
-
-      // -- BAGIAN WIRID --
-      else if (judul == "Tasbih (Subhanallah)") {
-        teksArab = "سُبْحَانَ اللهِ (٣٣×)";
-        artiTeks = "Maha Suci Allah. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
-      }
-      else if (judul == "Tahmid (Alhamdulillah)") {
-        teksArab = "الْحَمْدُ لِلَّهِ (٣٣×)";
-        artiTeks = "Segala puji bagi Allah. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
-      }
-      else if (judul == "Takbir (Allahu Akbar)") {
-        teksArab = "اللهُ أَكْبَرُ (٣٣×)";
-        artiTeks = "Allah Maha Besar. \n(Dibaca sebanyak 33 kali setelah sholat fardhu.";
-      }
-      else if (judul == "Tahlil (Laa Ilaha Illallah)") {
-        teksArab = "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ";
-        artiTeks = "Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dan Dia Maha Kuasa atas segala sesuatu.";
-      }
-      else if (judul == "Ayat Kursi") {
-        teksArab = "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ";
-        artiTeks = "Allah, tidak ada tuhan selain Dia. Yang Maha Hidup, yang terus-menerus mengurus (makhluk-Nya), tidak mengantuk dan tidak tidur. Milik-Nya apa yang ada di langit dan apa yang ada di bumi. Tidak ada yang dapat memberi syafaat di sisi-Nya tanpa izin-Nya. Dia mengetahui apa yang di hadapan mereka dan apa yang di belakang mereka, dan mereka tidak mengetahui sesuatu apa pun dari ilmu-Nya melainkan apa yang Dia kehendaki. Kursi-Nya meliputi langit dan bumi. Dan Dia tidak merasa berat memelihara keduanya, Dan Dia Maha Tinggi, Maha Besar.";
-      }
-
-      // -- SHOLAWAT --
-      else if (judul == "Sholawat Ibrahimiyah") {
-        teksArab = "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
-        artiTeks = "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
-      }
-      else if (judul == "Sholawat Jibril") {
-        teksArab = "صَلَّى اللهُ عَلَى مُحَمَّدٍ";
-        artiTeks = "Semoga Allah memberikan rahmat-Nya kepada Nabi Muhammad. \n(Sholawat singkat penarik rezeki.";
-      }
-      else if (judul == "Sholawat Nariyah") {
-        teksArab = "اَللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ";
-        artiTeks = "Ya Allah, limpahkanlah shalawat yang sempurna dan kesejahteraan yang paripurna kepada junjungan kami Nabi Muhammad, yang dengan perantaraannya semua ikatan terlepas, segala kesusahan dihilangkan, segala kebutuhan dipenuhi, segala keinginan dan akhir yang baik tercapai, dan hujan diturunkan berkat wajahnya yang mulia. Begitu pula kepada keluarga dan para sahabatnya pada setiap kedipan mata dan hembusan nafas, sebanyak jumlah semua yang Engkau ketahui.";
-      }
-      else if (judul == "Sholawat Munjiyat") {
-        teksArab = "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
-        artiTeks = "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
-      }
-
-      //  -- BAGIAN AMALAN -- 
-      else if (judul == "Amalan Sebelum Tidur") {
-        teksArab = "بِاسْمِكَ اللّٰهُمَّ أَحْيَا وَبِاسْمِكَ أَمُوْتُ (١)\n\n"
-                  "اَللّٰهُمَّ قِنِيْ عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ (٢)";
-        artiTeks = "1. Dengan nama-Mu ya Allah aku hidup dan dengan nama-Mu aku mati.\n\n"
-                  "2. Ya Allah, jagalah aku dari siksa-Mu pada hari yang Engkau membangkitkan hamba-hamba-Mu.\n\n"
-                  "Note: Sebelum membaca doa ini, disunnahkan juga membaca Ayat Kursi, Al-Ikhlas, Al-Falaq, dan An-Nas lalu ditiupkan ke telapak tangan dan diusap ke seluruh tubuh.";
-      }
-      else if (judul == "Sayyidul Istighfar") {
-        teksArab = "اَللَّهُمَّ أَنْتَ رَبِّيْ لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِيْ وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوْذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوْءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوْءُ بِذَنْبِيْ فَاغْفِرْ لِيْ فَإِنَّهُ لَا يَغْفِرُ الذُّنُوْبَ إِلَّا أَنْتَ";
-        artiTeks = "Ya Allah, Engkau adalah Tuhanku, tidak ada tuhan yang berhak disembah kecuali Engkau. Engkau yang menciptakanku dan aku adalah hamba-Mu. Aku menetapi perjanjian-Mu dan janji-Mu sesuai kemampuanku. Aku berlindung kepada-Mu dari keburukan perbuatanku, aku mengakui nikmat-Mu kepadaku dan aku mengakui dosaku, maka ampunilah aku. Sebab, tidak ada yang dapat mengampuni dosa melainkan Engkau.";
-      }
-      else if (judul == "Doa Sapu Jagat") {
-        teksArab = "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ";
-        artiTeks = "Ya Tuhan kami, berilah kami kebaikan di dunia dan kebaikan di akhirat, dan lindungilah kami dari azab neraka.";
-      }
-      else if (judul == "Doa Kedua Orang Tua") {
-        teksArab = "رَبِّ اغْفِرْ لِيْ وَلِوَالِدَيَّ وَارْحَمْهُمَا كَمَا رَبَّيَانِيْ صَغِيْرًا";
-        artiTeks = "Ya Tuhanku, ampunilah dosaku dan dosa kedua orang tuaku, dan sayangilah mereka sebagaimana mereka berdua telah mendidikku di waktu kecil.";
-      }
-
-      //-- BAGIAN MAULID & QASHIDAH --
-      else if (judul == "Maulid Simtutdurar (pembuka)") {
-        teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
-        artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
-      }
-      else if (judul == "Qashidah Burdah (Bab 1)") {
-        teksArab = "أَمِنْ تَذَكُّـرِ جِيْـرَانٍ بِـذِيْ سَلَمِ ❁ مَزَجْتَ دَمْعاً جَرَى مِنْ مُقْلَةٍ بِدَمِ \n\nأَمْ هَبَّتِ الرِّيْحُ مِنْ تِلْقَاءِ كَاظِمَةٍ ❁ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ";
-        artiTeks = "1. Apakah karena teringat tetangga yang tinggal di Dzi Salam, engkau mengucurkan air mata bercampur darah yang mengalir dari matamu? \n\n2. Ataukah karena angin berembus dari arah Kazhimah, dan kilat berkilauan di dalam kegelapan malam dari gunung Idham?.";
-      }
-      else if (judul == "Qashidah Ya Imamarusli") {
-        teksArab ="يَا إِمَامَ الرُّسْلِ يَا سَنَدِيْ ❁ أَنْتَ بَابُ اللهِ مُعْتَمَدِيْ\n"
-                  "فَبِدُنْيَايَ وَآخِرَتِيْ ❁ يَا رَسُوْلَ اللهِ خُذْ بِيَدِيْ (١)\n\n"
-                  "قَسَمًا بِالنَّجْمِ حِيْنَ هَوَى ❁ مَا الْمُعَافَى وَالسَّقِيْمُ سَوَى\n"
-                  "فَاخْلَعِ الْكَوْنَيْنِ عَنْكَ سِوَى ❁ حُبِّ مَوْلَى الْعُرْبِ وَالْعَجَمِ (٢)\n\n"
-                  "وَأَزِحْ مَا اسْتَطَعْتَ مِنْ عِلَلٍ ❁ عَنْ كَلَامٍ فِيْكَ ذِيْ زَلَلٍ\n"
-                  "وَانْتَبِهْ مِنْ رَقْدَةِ الْغَفَلِ ❁ وَاحْتَمِ فِيْ جَاهِ ذِيْ الْعِصَمِ (٣)";
-        artiTeks = "1. Wahai pemimpin para Rasul, wahai sandaranku! Engkaulah pintu Allah tumpuanku. Maka di dunia dan akhiratku, wahai Rasulullah, peganglah tanganku (bimbinglah aku).\n\n"
-                  "2. Aku bersumpah demi bintang ketika terbenam, tidaklah sama orang yang sehat dengan orang yang sakit. Maka lepaskanlah keterikatan dua alam darimu, kecuali cinta kepada pemimpin bangsa Arab dan ajam (Nabi Muhammad).\n\n"
-                  "3. Dan hilangkanlah sejauh kemampuanmu dari segala cacat, dari perkataan yang menggelincirkanmu. Dan bangunlah dari tidur kelalaian, serta berlindunglah di bawah kemuliaan Nabi yang terjaga dari dosa.";
-      }
-      else if (judul == "Qashidah Busro Lana") {
-        teksArab ="بُشْرَى لَنَا نِلْنَا الْمُنَى ❁ زَالَ الْعَنَا وَافَى الصَّفَا\n"
-                  "وَالدَّهْرُ أَنْجَزَ وَعْدَهُ ❁ وَالْبِشْرُ أَضْحَى مُعْلَنَا (١)\n\n"
-                  "يَا نَفْسُ طِيْبِيْ بِاللِّقَا ❁ يَا عَيْنُ قَرِّيْ أَعْيُنَا\n"
-                  "هٰذَا جَمَالُ الْمُصْطَفَى ❁ أَنْوَارُهُ لَاحَتْ لَنَا (٢)\n\n"
-                  "يَا طَيْبَةُ مَاذَا نَقُوْلْ ❁ وَفِيْكِ قَدْ حَلَّ الرَّسُوْلْ\n"
-                  "وَكُلُّنَا نَرْجُوْ الْوُصُوْلْ ❁ لِمُحَمَّدٍ نَبِيِّنَا (٣)\n\n"
-                  "صَلَّى عَلَيْهِ اللهُ بَارْ ❁ كُلَّ الْعَشَايَا وَالْأَبْكَارْ\n"
-                  "وَآلِهِ الْأَطْهَارِ الْأَخْيَارْ ❁ أَصْحَابِهِ أَهْلِ الْهُدَى (٤)";
-        artiTeks = "1. Kabar gembira bagi kami karena kami telah mencapai cita-cita. Segala kesulitan telah sirna dan kesucian telah datang. Waktu telah menepati janjinya, dan kegembiraan kini telah nyata diumumkan.\n\n"
-                  "2. Wahai jiwa, bahagia lah dengan pertemuan ini! Wahai mata, sejukkanlah pandangan kami! Ini adalah keindahan Al-Musthafa (Nabi pilihan), cahaya-cahayanya telah tampak terang bagi kami.\n\n"
-                  "3. Wahai kota Thaybah (Madinah), apa yang bisa kami katakan? Sedangkan di dalam dirimu telah tinggal sang Rasul. Dan kami semua berharap untuk bisa sampai kepada Muhammad, Nabi kami.\n\n"
-                  "4. Semoga Allah Sang Pencipta melimpahkan sholawat kepadanya setiap malam dan pagi hari, juga kepada keluarganya yang suci lagi mulia, serta para sahabatnya yang merupakan ahli petunjuk.";
-      }
-
-      // -- BAGIAN TUNTUNAN ZIARAH --
-      else if (judul == "1. Salam Ahli Kubur") {
-        teksArab = "السَّلَامُ عَلَيْكُمْ دَارَ قَوْمٍ مُؤْمِنِينَ وَإِنَّا إِنْ شَاءَ اللَّهُ بِكُمْ لَاحِقُونَ أَنْتُمْ لَنَا فرَطٌ وَنَحْنُ لَكُمْ تَبَعٌ";
-        artiTeks = "Semoga keselamatan tercurah kepada kalian, wahai penghuni kampung orang-orang mukmin. Kami insya Allah akan menyusul kalian. Kalian telah mendahului kami dan kami akan mengikuti kalian.";
-      }
-      else if (judul == "2. Membaca Hadiah Fatihah") {
-        teksArab = "إِلَى حَضْرَةِ النَّبِيِّ الْمُصْطَفَى صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ وَإِلَى أَرْوَاحِ آبَائِنَا وَأُمَّهَاتِنَا وَمَشَايِخِنَا وَأَهْلِ هٰذِهِ الْقُبُوْرِ مِنَ الْمُسْلِمِيْنَ وَالْمُسْلِمَاتِ، لَهُمُ الْفَاتِحَةُ...";
-        artiTeks = "Khususon kepada hadirat Nabi pilihan Muhammad SAW, dan kepada roh-roh bapak kami, ibu kami, guru-guru kami, dan penghuni kubur ini dari kaum muslimin dan muslimat, bagi mereka Al-Fatihah...";
-      }
-      else if (judul == "3. Membaca Surah Yasin (Awal)") {
-        teksArab = "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ. يٰسۤ (١) وَالْقُرْاٰنِ الْحَكِيْمِ (٢) اِنَّكَ لَمِنَ الْمُرْسَلِيْنَ (٣) عَلٰى صِرَاطٍ مُّسْتَقِيْمٍ (٤) تَنْزِيْلَ الْعَزِيْزِ الرَّحِيْمِ (٥)";
-        artiTeks = "1. Yaa Siiin. \n2. Demi Al-Qur'an yang penuh hikmah. \n3. Sungguh, engkau (Muhammad) adalah salah seorang dari rasul-rasul. \n4. (yang berada) di atas jalan yang lurus. \n5. (Sebagai wahyu) yang diturunkan oleh (Allah) Yang Maha Perkasa, Maha Penyayang.";
-      }
-      else if (judul == "4. Doa Khusus Ziarah Kubur") {
-        teksArab = "اَللَّهُمَّ اغْفِرْ لَهُمْ وَارْحَمْهُمْ وَعَافِهِمْ وَاعْفُ عَنْهُمْ اَللَّهُمَّ أَنْزِلِ الرَّحْمَةَ وَالْمَغْفِرَةَ عَلَى أَهْلِ الْقُبُوْرِ مِنْ أَهْلِ لَا إِلَهَ إِلَّا اللهُ مُحَمَّدٌ رَسُوْلُ اللهِ";
-        artiTeks = "Ya Allah, ampunilah mereka, sayangilah mereka, sejahterakanlah mereka, dan maafkanlah mereka. Ya Allah, turunkanlah rahmat dan ampunan kepada ahli kubur dari golongan orang-orang yang mengucapkan 'Laa ilaha illallah Muhammadur Rasulullah'.";
-      }
-
-      // -- BAGIAN HIZIB & RATIB --
-      else if (judul == "Ratib Al-Haddad (Awal)") {
-        teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ يُحْيِي وَيُمِيتُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ (٣×)";
-        artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dia yang menghidupkan dan yang mematikan, dan Dia Maha Kuasa atas segala sesuatu. (Dibaca 3x).";
-      }
-      else if (judul == "Ratib Al-Atthas (Awal)") {
-        teksArab = "أَعُوذُ بِاللَّهِ السَّمِيعِ الْعَلِيمِ مِنَ الشَّيْطَانِ الرَّجِيمِ (٣×) سْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ (٣×)";
-        artiTeks = "Aku berlindung kepada Allah Yang Maha Mendengar lagi Maha Mengetahui dari godaan setan yang terkutuk (3x). \n\nDengan nama Allah yang bila disebut, segala sesuatu di bumi dan di langit tidak akan berbahaya, dan Dia Maha Mendengar lagi Maha Mengetahui (3x).";
-      }
-      else if (judul == "Hizib Nashor (Pembuka)") {
-        teksArab = "اَللَّهُمَّ بِسَطْوَةِ جَبَرُوْتِ قَهْرِكَ، وَبِسُرْعَةِ إِغَاثَةِ نَصْرِكَ، وَبِغَيْرَتِكَ لِاِنْتِهَاكِ حُرُمَاتِكَ، وَبِحِمَايَتِكَ لِمَنِ احْتَمَى بِآيَاتِكَ";
-        artiTeks = "Ya Allah, dengan kekuatan kekuasaan penaklukan-Mu, dengan kecepatan bantuan pertolongan-Mu, dengan pembelaan-Mu terhadap pelanggaran kehormatan-Mu, dan dengan perlindungan-Mu bagi siapa yang berlindung dengan ayat-ayat-Mu (kami memohon pertolongan-Mu).";
-      }
-      else if (judul == "Hizib Bahar (Pembuka)") {
-        teksArab = "يَا عَلِيُّ يَا عَظِيْمُ يَا حَلِيْمُ يَا عَلِيْمُ أَنْتَ رَبِّيْ وَعِلْمُكَ حَسْبِيْ فَنِعْمَ الرَّبُّ رَبِّيْ وَنِعْمَ الْحَسْبُ حَسْبِيْ";
-        artiTeks = "Wahai Yang Maha Tinggi, Wahai Yang Maha Agung, Wahai Yang Maha Penyantun, Wahai Yang Maha Mengetahui. Engkau adalah Tuhanku, dan ilmu-Mu adalah kecukupanku. Maka sebaik-baik Tuhan adalah Tuhanku, dan sebaik-baik kecukupan adalah kecukupanku.";
-      }
-
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: Text(judul),
-        backgroundColor: Colors.black, foregroundColor: Colors.white),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.teal.withOpacity(0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-            Text(
-              teksArab,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                height: 2.2,
-                fontFamily: 'Serif'
-              ),
-              textAlign: TextAlign.right,
-            ),
-            const Divider(color: Colors.teal, height: 30),
-            Text(
-              artiTeks,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 15,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.left,
-                ),
-              ],
-            ),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    final List<String> sholawat = [
+      "Sholawat Ibrahimiyah",
+      "Sholawat Jibril",
+      "Sholawat Nariyah",
+      "Sholawat Munjiyat",
+    ];
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        title: const Text('Kumpulan Sholawat'), 
+        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
+        foregroundColor: Colors.white
       ),
-    ),
-  );
+      body: ListView.builder(
+        itemCount: sholawat.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: const Icon(Icons.favorite_border_rounded, color: Colors.teal),
+            title: Text(sholawat[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) => IsiBacaanPage(
+                  judul: sholawat[index],
+                  skalaFont: skalaFont,
+                  tampilkanTerjemahan: tampilkanTerjemahan,
+                  isDarkMode: isDarkMode,
+                ),
+              ));
+            },
+          );
+        },
+      ),
+    );
   }
-  }
+}
 
-  class HalamanMubarakQuran extends StatefulWidget {
+class MaulidPage extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const MaulidPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> maulid = [
+      "Maulid Simtutdurar (pembuka)",
+      "Qashidah Burdah (Bab 1)",
+      "Qashidah Ya Imamarusli",
+      "Qashidah Busro Lana",
+    ];
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        title: const Text('Maulid & Qashidah'), 
+        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
+        foregroundColor: Colors.white
+      ),
+      body: ListView.builder(
+        itemCount: maulid.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
+            title: Text(maulid[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) => IsiBacaanPage(
+                  judul: maulid[index],
+                  skalaFont: skalaFont,
+                  tampilkanTerjemahan: tampilkanTerjemahan,
+                  isDarkMode: isDarkMode,
+                ),
+              ));
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class HizibPage extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const HizibPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> hizib = [
+      "Ratib Al-Haddad (Awal)",
+      "Ratib Al-Atthas (Awal)",
+      "Hizib Nashor (Pembuka)",
+      "Hizib Bahar (Pembuka)",
+    ];
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        title: const Text('Hizib & Ratib'), 
+        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
+        foregroundColor: Colors.white
+      ),
+      body: ListView.builder(
+        itemCount: hizib.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
+            title: Text(hizib[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) => IsiBacaanPage(
+                  judul: hizib[index],
+                  skalaFont: skalaFont,
+                  tampilkanTerjemahan: tampilkanTerjemahan,
+                  isDarkMode: isDarkMode,
+                ),
+              ));
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+  
+class IsiBacaanPage extends StatelessWidget {
+  final String judul;
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode; // <-- BERHASIL DITAMBAHKAN DI SINI
+
+  const IsiBacaanPage({
+    super.key, 
+    required this.judul,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode, // <-- BERHASIL DITAMBAHKAN DI SINI
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    String teksArab = "";
+    String artiTeks = "";
+
+    if (judul == "Sholawat Ibrahimiyah") {
+      teksArab = "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
+      artiTeks = "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
+    }
+    else if (judul == "Sholawat Jibril") {
+      teksArab = "صَلَّى اللهُ عَلَى مُحَمَّدٍ";
+      artiTeks = "Semoga Allah memberikan rahmat-Nya kepada Nabi Muhammad. \n(Sholawat singkat penarik rezeki.)";
+    }
+    else if (judul == "Sholawat Nariyah") {
+      teksArab = "اَللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ";
+      artiTeks = "Ya Allah, limpahkanlah shalawat yang sempurna dan kesejahteraan yang paripurna kepada junjungan kami Nabi Muhammad, yang dengan perantaraannya semua ikatan terlepas, segala kesusahan dihilangkan, segala kebutuhan dipenuhi, segala keinginan dan akhir yang baik tercapai, dan hujan diturunkan berkat wajahnya yang mulia. Begitu pula kepada keluarga dan para sahabatnya pada setiap kedipan mata and hembusan nafas, sebanyak jumlah semua yang Engkau ketahui.";
+    }
+    else if (judul == "Sholawat Munjiyat") {
+      teksArab = "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
+      artiTeks = "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
+    }
+    else if (judul == "Maulid Simtutdurar (pembuka)") {
+      teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
+      artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
+    }
+    else if (judul == "Qashidah Burdah (Bab 1)") {
+      teksArab = "أَمِنْ تَذَكُّـرِ جِيْـرَانٍ بِـذِيْ سَلَمِ ❁ مَزَجْتَ دَمْعاً جَرَى مِنْ مُقْلَةٍ بِدَمِ \n\nأَمْ هَبَّتِ الرِّيْحُ مِنْ تِلْقَاءِ كَاظِمَةٍ ❁ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ";
+      artiTeks = "1. Apakah karena teringat tetangga yang tinggal di Dzi Salam, engkau mengucurkan air mata bercampur darah yang mengalir dari matamu? \n\n2. Ataukah karena angin berembus dari arah Kazhimah, dan kilat berkilauan di dalam kegelapan malam dari gunung Idham?.";
+    }
+    else if (judul == "Qashidah Ya Imamarusli") {
+      teksArab ="يَا إِمَامَ الرُّسْلِ يَا سَنَدِيْ ❁ أَنْتَ بَابُ اللهِ مُعْتَمَدِيْ\n"
+                "فَبِدُنْيَايَ وَآخِرَتِيْ ❁ يَا رَسُوْلَ اللهِ خُذْ بِيَدِيْ (١)\n\n"
+                "قَسَمًا بِالنَّجْمِ حِيْنَ هَوَى ❁ مَا الْمُعَافَى وَالسَّقِيْمُ سَوَى\n"
+                "فَاخْلَعِ الْكَوْنَيْنِ عَنْكَ سِوَى ❁ حُبِّ مَوْلَى الْعُرْبِ وَالْعَجَمِ (٢)\n\n"
+                "وَأَزِ حْ مَا اسْتَطَعْتَ مِنْ عِلَلٍ ❁ عَنْ كَلَامٍ فِيْكَ ذِيْ زَلَلٍ\n"
+                "وَانْتَبِهْ مِنْ رَقْدَةِ الْغَفَلِ ❁ وَاحْتَمِ فِيْ جَاهِ ذِيْ الْعِصَمِ (٣)";
+      artiTeks = "1. Wahai pemimpin para Rasul, wahai sandaranku! Engkaulah pintu Allah tumpuanku. Maka di dunia dan akhiratku, wahai Rasulullah, peganglah tanganku (bimbinglah aku).\n\n2. Aku bersumpah demi bintang ketika terbenam, tidaklah sama orang yang sehat dengan orang yang sakit. Maka lepaskanlah keterikatan dua alam darimu, kecuali cinta kepada pemimpin bangsa Arab dan ajam (Nabi Muhammad).\n\n3. Dan hilangkanlah sejauh kemampuanmu dari segala cacat, dari perkataan yang menggelincirkanmu. Dan bangunlah dari tidur kelalaian, serta berlindunglah di bawah kemuliaan Nabi yang terjaga dari dosa.";
+    }
+    else if (judul == "Qashidah Busro Lana") {
+      teksArab ="بُشْرَى لَنَا نِلْنَا الْمُنَى ❁ زَالَ الْعَنَا وَافَى الصَّفَا\n"
+                "وَالدَّهْرُ أَنْجَزَ وَعْدَهُ ❁ وَالْبِشْرُ أَضْحَى مُعْلَنَا (١)\n\n"
+                "يَا نَفْسُ طِيْبِيْ بِاللِّقَا ❁ يَا عَيْنُ قَرِّيْ أَعْيُنَا\n"
+                "هٰذَا جَمَالُ الْمُصْطَفَى ❁ أَنْوَارُهُ لَاحَتْ لَنَا (٢)\n\n"
+                "يَا طَيْبَةُ مَاذَا نَقُوْلْ ❁ وَفِيْكِ قَدْ حَلَّ الرَّسُوْلْ\n"
+                "وَكُلُّنَا نَرْجُوْ الْوُصُوْلْ ❁ لِمُحَمَّدٍ نَبِيِّنَا (٣)\n\n"
+                "صَلَّى عَلَيْهِ اللهُ بَارْ ❁ كُلَّ الْعَشَايَا وَالْأَبْكَارْ\n"
+                "وَآلِهِ الْأَطْهَارِ الْأَخْيَارْ ❁ أَصْحَابِهِ أَهْلِ الْهُدَى (٤)";
+      artiTeks = "1. Kabar gembira bagi kami karena kami telah mencapai cita-cita. Segala kesulitan telah sirna dan kesucian telah datang. Waktu telah menepati janjinya, dan kegembiraan kini telah nyata diumumkan.\n\n2. Wahai jiwa, bahagia lah dengan pertemuan ini! Wahai mata, sejukkanlah pandangan kami! Ini adalah keindahan Al-Musthafa (Nabi pilihan), cahaya-cahayanya telah tampak terang bagi kami.\n\n3. Wahai kota Thaybah (Madinah), apa yang bisa kami katakan? Sedangkan di dalam dirimu telah tinggal sang Rasul. Dan kami semua berharap untuk bisa sampai kepada Muhammad, Nabi kami.\n\n4. Semoga Allah Sang Pencipta melimpahkan sholawat kepadanya setiap malam dan pagi hari, juga kepada keluarganya yang suci lagi mulia, serta para sahabatnya yang merupakan ahli petunjuk.";
+    }
+    else if (judul == "Ratib Al-Haddad (Awal)") {
+      teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ يُحْيِي وَيُمِيتُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ (٣×)";
+      artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dia yang menghidupkan dan yang mematikan, dan Dia Maha Kuasa atas segala sesuatu. (Dibaca 3x).";
+    }
+    else if (judul == "Ratib Al-Atthas (Awal)") {
+      teksArab = "أَعُوذُ بِاللَّهِ السَّمِيعِ الْعَلِيمِ مِنَ الشَّيْطَانِ الرَّجِيمِ (٣×) سْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ (٣×)";
+      artiTeks = "Aku berlindung kepada Allah Yang Maha Mendengar lagi Maha Mengetahui dari godaan setan yang terkutuk (3x). \n\nDengan nama Allah yang bila disebut, segala sesuatu di bumi dan di langit tidak akan berbahaya, dan Dia Maha Mendengar lagi Maha Mengetahui (3x).";
+    }
+    else if (judul == "Hizib Nashor (Pembuka)") {
+      teksArab = "اَللَّهُمَّ بِسَطْوَةِ جَبَرُوْتِ قَهْرِكَ، وَبِسُرْعَةِ إِغَاثَةِ نَصْرِكَ، وَبِغَيْرَتِكَ لِاِنْتِهَاكِ حُرُمَاتِكَ، وَبِحِمَايَتِكَ لِمَنِ احْتَمَى بِآيَاتِكَ";
+      artiTeks = "Ya Allah, dengan kekuatan kekuasaan penaklukan-Mu, dengan kecepatan bantuan pertolongan-Mu, dengan pembelaan-Mu terhadap pelanggaran kehormatan-Mu, dan dengan perlindungan-Mu bagi siapa yang berlindung dengan ayat-ayat-Mu (kami memohon pertolongan-Mu).";
+    }
+    else if (judul == "Hizib Bahar (Pembuka)") {
+      teksArab = "يَا عَلِيُّ يَا عَظِيْمُ يَا حَلِيْمُ يَا عَلِيْمُ أَنْتَ رَبِّيْ وَعِلْمُكَ حَسْبِيْ فَنِعْمَ الرَّبُّ رَبِّيْ وَنِعْمَ الْحَسْبُ حَسْبِيْ";
+      artiTeks = "Wahai Yang Maha Tinggi, Wahai Yang Maha Agung, Wahai Yang Maha Penyantun, Wahai Yang Maha Mengetahui. Engkau adalah Tuhanku, dan ilmu-Mu adalah kecukupanku. Maka sebaik-baik Tuhan adalah Tuhanku, dan sebaik-baik kecukupan adalah kecukupanku.";
+    }
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        title: Text(judul),
+        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.teal.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    teksArab,
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 26 * skalaFont,
+                      height: 2.2,
+                      fontFamily: 'Serif',
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                  if (tampilkanTerjemahan) ...[
+                    const Divider(color: Colors.teal, height: 30),
+                    Text(
+                      artiTeks,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey : Colors.grey[800],
+                        fontSize: 15 * skalaFont,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HalamanMubarakQuran extends StatefulWidget {
   final int nomorSurah;
   final String judulSurah;
-  
-  const HalamanMubarakQuran({super.key, required this.nomorSurah, required this.judulSurah});
+  final double skalaFont;
+  final bool isDarkMode; // Meneruskan data warna ke detail Quran
+
+  const HalamanMubarakQuran({
+    super.key,
+    required this.nomorSurah,
+    required this.judulSurah,
+    required this.skalaFont,
+    required this.isDarkMode,
+  });
 
   @override
   State<HalamanMubarakQuran> createState() => _HalamanMubarakQuranState();
@@ -872,132 +811,6 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text("${widget.nomorSurah}. ${widget.judulSurah}"),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
-          : Column(
-              children: [
-              
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F291E), 
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.teal.withOpacity(0.3), width: 2),
-                      ),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 25),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.teal.withOpacity(0.5)),
-                            ),
-                            child: Text(
-                              _detailSurah?['nama'] ?? '',
-                              style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          
-                          Expanded(
-                            child: Center(
-                              child: Container(
-                                margin: const EdgeInsets.all(20),
-                                padding: const EdgeInsets.all(20),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF111111), // Lingkaran pusat ayat
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                      child: Text(
-                                        _ambilGabunganAyat(),
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 19, 
-                                          color: Colors.white, 
-                                          height: 2.3, 
-                                          fontFamily: 'Serif'
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 10, height: 10, decoration: const BoxDecoration(color: Colors.teal, shape: BoxShape.circle)),
-                          Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                          Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      const Text("Halaman 1 dari 1", style: TextStyle(color: Colors.grey, fontSize: 13)),
-                    ],
-                  ),
-                ),
-
-                
-                Container(
-                  color: const Color(0xFF111111), 
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.teal,
-                        child: IconButton(
-                          icon: const Icon(Icons.play_arrow, color: Colors.white, size: 28),
-                          onPressed: () {},
-                        ),
-                      ),
-                      const Text(
-                        "Pilihan pembaca",
-                        style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.share_outlined, color: Colors.grey),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
   String _ambilGabunganAyat() {
     if (_detailSurah == null || _detailSurah!['ayat'] == null) return "";
     String totalTeks = "";
@@ -1005,5 +818,39 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
       totalTeks += "${ayat['teksArab']} ﴿${ayat['nomorAyat']}﴾ ";
     }
     return totalTeks;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        backgroundColor: widget.isDarkMode ? Colors.black : Colors.teal,
+        foregroundColor: Colors.white,
+        title: Text(_detailSurah != null ? "${_detailSurah!['namaLatin']}" : widget.judulSurah),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+          : Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    child: Text(
+                      _ambilGabunganAyat(),
+                      textDirection: TextDirection.rtl, 
+                      textAlign: TextAlign.justify,     
+                      style: TextStyle(
+                        fontSize: 26 * widget.skalaFont, 
+                        height: 2.4,        
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
+                        fontFamily: 'Amiri',
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
   }
 }
