@@ -6,6 +6,54 @@ void main() {
   runApp(const NurKitabApp());
 }
 
+class NurKitabColors {
+  static const deepGreen = Color(0xFF002211);
+  static const cardGreen = Color(0xFF061A12);
+  static const cardGreenLight = Color(0xFF0A2418);
+  static const gold = Color(0xFFD4AF37);
+  static const goldDim = Color(0xFF8B7340);
+  static const navBackground = Color(0xFF001A0D);
+  static const textMuted = Color(0xFF9E9E9E);
+}
+
+class NurKitabAssets {
+  static const archFrame = 'asset/images/arch_frame.png';
+  static const lantern = 'asset/images/lantern.png';
+  static const crescentMoon = 'asset/images/crescent_moon.png';
+  static const quranContinue = 'asset/images/quran_continue.png';
+  static const iconQuran = 'asset/images/icon_quran.png';
+  static const iconSholawat = 'asset/images/icon_sholawat.png';
+  static const iconYasin = 'asset/images/icon_yasin.png';
+  static const iconHizib = 'asset/images/icon_hizib.png';
+  static const mosqueDome = 'asset/images/mosque_dome.png';
+}
+
+Widget nurKitabAsset(
+  String path, {
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.contain,
+  Color? color,
+  Alignment alignment = Alignment.center,
+}) {
+  return Image.asset(
+    path,
+    width: width,
+    height: height,
+    fit: fit,
+    alignment: alignment,
+    filterQuality: FilterQuality.high,
+    color: color,
+    colorBlendMode: color != null ? BlendMode.srcIn : null,
+    gaplessPlayback: true,
+    errorBuilder: (context, error, stackTrace) => Icon(
+      Icons.image_not_supported_outlined,
+      size: width ?? height ?? 24,
+      color: NurKitabColors.gold,
+    ),
+  );
+}
+
 class NurKitabApp extends StatelessWidget {
   const NurKitabApp({super.key});
 
@@ -13,15 +61,42 @@ class NurKitabApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Nur_kitab',
+      title: 'Nur Kitab',
       theme: ThemeData.dark().copyWith(
-        primaryColor: const Color(0xFF004D40),
-        scaffoldBackgroundColor: Colors.black,
-        colorScheme: const ColorScheme.dark(primary: Colors.teal),
+        primaryColor: NurKitabColors.deepGreen,
+        scaffoldBackgroundColor: NurKitabColors.deepGreen,
+        colorScheme: const ColorScheme.dark(
+          primary: NurKitabColors.gold,
+          secondary: NurKitabColors.gold,
+          surface: NurKitabColors.cardGreen,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: NurKitabColors.deepGreen,
+          foregroundColor: NurKitabColors.gold,
+          elevation: 0,
+        ),
       ),
       home: const HomePage(),
     );
   }
+}
+
+AppBar nurKitabAppBar(String title) {
+  return AppBar(
+    title: Text(title, style: const TextStyle(color: NurKitabColors.gold, fontWeight: FontWeight.w600)),
+    backgroundColor: NurKitabColors.deepGreen,
+    foregroundColor: NurKitabColors.gold,
+    iconTheme: const IconThemeData(color: NurKitabColors.gold),
+    elevation: 0,
+  );
+}
+
+BoxDecoration nurKitabCardDecoration({double radius = 16}) {
+  return BoxDecoration(
+    color: NurKitabColors.cardGreen.withValues(alpha: 0.92),
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.45), width: 1),
+  );
 }
 
 class HomePage extends StatefulWidget {
@@ -33,24 +108,22 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // State Utama Pengaturan Aplikasi (Mengontrol Warna, Terjemahan, & Ukuran Font)
   bool isDarkMode = true;
   bool tampilkanTerjemahan = true;
   double skalaFont = 1.0;
 
   @override
   Widget build(BuildContext context) {
-    // Penyesuaian tema warna dinamis berdasarkan toggle settings
-    final warnaBackground = isDarkMode ? Colors.black : Colors.white;
-    final warnaAppBar = isDarkMode ? Colors.black : Colors.teal;
-    final warnaTeksAppBar = isDarkMode ? Colors.teal : Colors.white;
-    final warnaNavBg = isDarkMode ? Colors.black : Colors.grey[200];
-    final warnaNavUnselected = isDarkMode ? Colors.grey : Colors.grey[600];
-
-    // List Halaman Aplikasi dengan melemparkan parameter state ke halaman terkait
     final pages = [
-      HomeContent(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode),
+      HomeContent(
+        skalaFont: skalaFont,
+        tampilkanTerjemahan: tampilkanTerjemahan,
+        isDarkMode: isDarkMode,
+        onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+        onMoonTap: () => setState(() => currentIndex = 2),
+      ),
       const PrayerSchedulePage(),
       ProfilePage(
         isDarkMode: isDarkMode,
@@ -63,28 +136,145 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      backgroundColor: warnaBackground,
-      appBar: AppBar(
-        backgroundColor: warnaAppBar,
-        elevation: 0,
-        title: Text(
-          'نورالکتاب',
-          style: TextStyle(fontFamily: 'Serif', color: warnaTeksAppBar, fontSize: 24),          
-        ),
-        centerTitle: true,
-      ),
+      key: _scaffoldKey,
+      backgroundColor: NurKitabColors.deepGreen,
+      drawer: _buildDrawer(),
       body: pages[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: _NurKitabBottomNav(
         currentIndex: currentIndex,
-        backgroundColor: warnaNavBg,
-        selectedItemColor: Colors.teal,
-        unselectedItemColor: warnaNavUnselected,
-        onTap: (index) => setState(() => currentIndex = index), 
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.description), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Jadwal'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Pengaturan'), 
-        ],    
+        onTap: (index) => setState(() => currentIndex = index),
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: NurKitabColors.cardGreen,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  nurKitabAsset(NurKitabAssets.archFrame, width: 48, height: 56),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Nur Kitab',
+                    style: TextStyle(
+                      color: NurKitabColors.gold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Serif',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: NurKitabColors.goldDim),
+            ListTile(
+              leading: const Icon(Icons.home_rounded, color: NurKitabColors.gold),
+              title: const Text('Beranda', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() => currentIndex = 0);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calendar_month_outlined, color: NurKitabColors.gold),
+              title: const Text('Jadwal Sholat', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() => currentIndex = 1);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined, color: NurKitabColors.gold),
+              title: const Text('Pengaturan', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() => currentIndex = 2);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NurKitabBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _NurKitabBottomNav({required this.currentIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: NurKitabColors.navBackground,
+        border: Border(top: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.15))),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _item(0, Icons.home_rounded, 'Beranda'),
+              _item(1, Icons.calendar_month_outlined, 'Jadwal'),
+              _item(2, Icons.settings_outlined, 'Pengaturan'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item(int index, IconData icon, String label) {
+    final active = currentIndex == index;
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 88,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: active
+                  ? BoxDecoration(
+                      color: NurKitabColors.gold.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: NurKitabColors.gold.withValues(alpha: 0.25),
+                          blurRadius: 12,
+                        ),
+                      ],
+                    )
+                  : null,
+              child: Icon(
+                icon,
+                color: active ? NurKitabColors.gold : NurKitabColors.textMuted,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: active ? NurKitabColors.gold : NurKitabColors.textMuted,
+                fontSize: 11,
+                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -94,95 +284,492 @@ class HomeContent extends StatelessWidget {
   final double skalaFont;
   final bool tampilkanTerjemahan;
   final bool isDarkMode;
+  final VoidCallback onMenuTap;
+  final VoidCallback onMoonTap;
 
   const HomeContent({
     super.key,
     required this.skalaFont,
     required this.tampilkanTerjemahan,
     required this.isDarkMode,
+    required this.onMenuTap,
+    required this.onMoonTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(12),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF003320), NurKitabColors.deepGreen, Color(0xFF001408)],
+        ),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF0A3020).withValues(alpha: 0.9),
+                    NurKitabColors.deepGreen,
+                    const Color(0xFF001408),
+                  ],
+                ),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Opacity(
+                      opacity: 0.22,
+                      child: nurKitabAsset(NurKitabAssets.mosqueDome, height: 160, fit: BoxFit.contain),
+                    ),
+                  ),
+                  Positioned(
+                    top: 24,
+                    left: 8,
+                    child: Opacity(
+                      opacity: 0.45,
+                      child: nurKitabAsset(NurKitabAssets.lantern, width: 56, height: 90),
+                    ),
+                  ),
+                  Positioned(
+                    top: 24,
+                    right: 8,
+                    child: Opacity(
+                      opacity: 0.45,
+                      child: nurKitabAsset(NurKitabAssets.lantern, width: 56, height: 90),
+                    ),
+                  ),
+                  CustomPaint(painter: _MosqueGlowPainter()),
+                ],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              children: [
+                _buildTopBar(),
+                const SizedBox(height: 12),
+                _buildBranding(),
+                const SizedBox(height: 20),
+                _buildGreeting(),
+                const SizedBox(height: 24),
+                _buildContinueCard(context),
+                const SizedBox(height: 20),
+                _buildMenuGrid(context),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildWideCard(context, 'Al-Qur\'an', SurahPendekPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), false),
-        _buildWideCard(context, 'Kumpulan Bacaan Sholawat', SholawatPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), true),
-        
+        IconButton(
+          onPressed: onMenuTap,
+          icon: const Icon(Icons.menu_rounded, color: NurKitabColors.gold, size: 28),
+        ),
+        IconButton(
+          onPressed: onMoonTap,
+          padding: EdgeInsets.zero,
+          icon: nurKitabAsset(NurKitabAssets.crescentMoon, width: 32, height: 32),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBranding() {
+    return Column(
+      children: [
+        SizedBox(
+          width: 88,
+          height: 100,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              nurKitabAsset(NurKitabAssets.archFrame, width: 88, height: 100, fit: BoxFit.contain),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 6),
+                child: Text(
+                  'الله',
+                  style: TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 26,
+                    color: NurKitabColors.gold,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'Nur Kitab',
+          style: TextStyle(
+            fontFamily: 'Serif',
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            color: NurKitabColors.gold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.diamond, size: 8, color: NurKitabColors.gold.withValues(alpha: 0.7)),
+            const SizedBox(width: 8),
+            Text(
+              'cahaya ilmu, penuntun hati',
+              style: TextStyle(
+                color: NurKitabColors.gold.withValues(alpha: 0.85),
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.diamond, size: 8, color: NurKitabColors.gold.withValues(alpha: 0.7)),
+          ],
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildSquareCard(context, 'Maulid & Qashidah', MaulidPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), false)),
-            const SizedBox(width: 8),
-            Expanded(child: _buildSquareCard(context, 'Hizib & Ratib', HizibPage(skalaFont: skalaFont, tampilkanTerjemahan: tampilkanTerjemahan, isDarkMode: isDarkMode), true)),
+            Expanded(child: Divider(color: NurKitabColors.gold.withValues(alpha: 0.35), thickness: 0.5)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Icon(Icons.auto_awesome, size: 12, color: NurKitabColors.gold.withValues(alpha: 0.5)),
+            ),
+            Expanded(child: Divider(color: NurKitabColors.gold.withValues(alpha: 0.35), thickness: 0.5)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildWideCard(BuildContext context, String title, Widget targetPage, bool isNew) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
-      child: Container(
-        height: 100,
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: _cardDecoration(),
-        child: Stack(
-          children: [
-            if (isNew) _badgeNew(),
-            Center(
-              child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-            ),
-          ],
+  Widget _buildGreeting() {
+    return Column(
+      children: [
+        const Text(
+          "Assalamu'alaikum",
+          style: TextStyle(
+            fontFamily: 'Serif',
+            fontSize: 26,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          'Semoga harimu penuh berkah dan diliputi cahaya iman.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSquareCard(BuildContext context, String title, Widget targetPage, bool isNew) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
-      child: Container(
-        height: 120,
-        decoration: _cardDecoration(),
-        child: Stack(
-          children: [
-            if (isNew) _badgeNew(),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+  Widget _buildContinueCard(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: nurKitabCardDecoration(radius: 20),
+          child: Row(
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.6), width: 1.5),
+                ),
+                child: Center(
+                  child: nurKitabAsset(
+                    NurKitabAssets.quranContinue,
+                    width: 68,
+                    height: 68,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'LANJUTKAN BACAAN TERAKHIR',
+                      style: TextStyle(
+                        color: NurKitabColors.gold.withValues(alpha: 0.85),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Al-Kahfi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'Ayat 12',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 12, color: NurKitabColors.textMuted),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Terakhir dibuka 2 jam yang lalu',
+                          style: TextStyle(color: NurKitabColors.textMuted, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Material(
+                color: NurKitabColors.gold,
+                borderRadius: BorderRadius.circular(24),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(24),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HalamanMubarakQuran(
+                          nomorSurah: 18,
+                          judulSurah: 'Al-Kahfi',
+                          skalaFont: skalaFont,
+                          isDarkMode: isDarkMode,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
+                        SizedBox(width: 2),
+                        Text(
+                          'Lanjutkan',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: -6,
+          left: 20,
+          child: Icon(Icons.bookmark, color: NurKitabColors.gold.withValues(alpha: 0.9), size: 22),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuGrid(BuildContext context) {
+    final items = [
+      _MenuItem(
+        title: "Al-Qur'an",
+        description: 'Baca, pahami, dan renungi firman Allah setiap hari.',
+        imageAsset: NurKitabAssets.iconQuran,
+        page: SurahPendekPage(
+          skalaFont: skalaFont,
+          tampilkanTerjemahan: tampilkanTerjemahan,
+          isDarkMode: isDarkMode,
+        ),
+      ),
+      _MenuItem(
+        title: 'Sholawat, Maulid & Qashidah',
+        description: 'Kumpulan sholawat pilihan, maulid, dan qashidah yang indah penuh makna.',
+        imageAsset: NurKitabAssets.iconSholawat,
+        page: SholawatMaulidPage(
+          skalaFont: skalaFont,
+          tampilkanTerjemahan: tampilkanTerjemahan,
+          isDarkMode: isDarkMode,
+        ),
+      ),
+      _MenuItem(
+        title: 'Yasin & Tahlil',
+        description: 'Bacaan Yasin dan tahlil untuk mendoakan dan mengingat ahli kubur.',
+        imageAsset: NurKitabAssets.iconYasin,
+        page: YasinTahlilPage(
+          skalaFont: skalaFont,
+          tampilkanTerjemahan: tampilkanTerjemahan,
+          isDarkMode: isDarkMode,
+        ),
+      ),
+      _MenuItem(
+        title: 'Hizib & Ratib',
+        description: 'Kumpulan hizib dan ratib harian untuk wirid dan penjagaan diri.',
+        imageAsset: NurKitabAssets.iconHizib,
+        page: HizibPage(
+          skalaFont: skalaFont,
+          tampilkanTerjemahan: tampilkanTerjemahan,
+          isDarkMode: isDarkMode,
+        ),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.74,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) => _buildGridCard(context, items[index]),
+    );
+  }
+
+  Widget _buildGridCard(BuildContext context, _MenuItem item) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => item.page)),
+      child: Container(
+        decoration: nurKitabCardDecoration(radius: 16).copyWith(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              NurKitabColors.cardGreenLight,
+              NurKitabColors.cardGreen.withValues(alpha: 0.95),
+            ],
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // GANTI dengan memanggil nurKitabAsset langsung:
+                    SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight * 0.44, // Mengatur tinggi proporsional ikon
+                    child: Center(
+                    child: nurKitabAsset(
+                    item.imageAsset,
+                    fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      color: NurKitabColors.gold,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12.5,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Expanded(
+                    child: Text(
+                      item.description,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 9.5,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.5)),
+                      ),
+                      child: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
+}
 
-  BoxDecoration _cardDecoration() {
-    return BoxDecoration(
-      color: Colors.grey[900],
-      borderRadius: BorderRadius.circular(8),
-      image: const DecorationImage(
-        image: NetworkImage('https://cdn.prod.website-files.com/65af5f0812c914d3fef6a68c/65f27c26e1af10be0127caf2_5.%20Menggali%20Kearifan%20Spiritual%20dalam%20Petunjuk%20Al-Quran.jpg'),
-        opacity: 0.3,
-        fit: BoxFit.cover,
-      ),
-    );
+class _MenuItem {
+  final String title;
+  final String description;
+  final String imageAsset;
+  final Widget page;
+
+  const _MenuItem({
+    required this.title,
+    required this.description,
+    required this.imageAsset,
+    required this.page,
+  });
+}
+
+class _MosqueGlowPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width * 0.5, size.height * 0.12);
+    final glow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          NurKitabColors.gold.withValues(alpha: 0.12),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.45));
+    canvas.drawCircle(center, size.width * 0.45, glow);
   }
 
-  Widget _badgeNew() {
-    return Positioned(
-      top: 8, left: 8,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(color: Colors.teal[700], borderRadius: BorderRadius.circular(4)),
-        child: const Text('baru', style: TextStyle(fontSize: 10, color: Colors.white)),
-      ),
-    );
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class PrayerSchedulePage extends StatelessWidget {
@@ -235,40 +822,80 @@ class PrayerSchedulePage extends StatelessWidget {
       waktuSholatBerikutnya = prayers['Imsak']!;
       namaSholatBerikutnya = "Imsak";
     }
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          color: Colors.teal[900],
-          child: Column(
-            children: [
-              const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16, color: Colors.white)),
-              const SizedBox(height: 10),
-              Text(waktuSholatBerikutnya, style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 5),
-              Text(
-                "Menuju $namaSholatBerikutnya",
-                style: const TextStyle(fontSize: 16, color: Colors.white70, fontStyle: FontStyle.italic),
-              )
-            ],
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF003320), NurKitabColors.deepGreen],
         ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: prayers.entries.map((e) => 
-            Card(
-              color: Colors.grey[900],
-              child: ListTile(
-                title: Text(e.key, style: const TextStyle(color: Colors.white)),
-                trailing: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
-                leading: const Icon(Icons.notifications_none, color: Colors.teal),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [NurKitabColors.cardGreenLight, NurKitabColors.deepGreen],
               ),
-            )).toList(),
+              border: Border(bottom: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.3))),
+            ),
+            child: Column(
+              children: [
+                const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16, color: Colors.white)),
+                const SizedBox(height: 12),
+                Text(
+                  waktuSholatBerikutnya,
+                  style: const TextStyle(fontSize: 56, fontWeight: FontWeight.bold, color: NurKitabColors.gold),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Menuju $namaSholatBerikutnya",
+                  style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.7)),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: prayers.entries.map((e) {
+                final isNext = e.key.toLowerCase() == namaSholatBerikutnya.toLowerCase();
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: nurKitabCardDecoration(radius: 12).copyWith(
+                    border: Border.all(
+                      color: isNext ? NurKitabColors.gold.withValues(alpha: 0.6) : NurKitabColors.gold.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      e.key,
+                      style: TextStyle(
+                        color: isNext ? NurKitabColors.gold : Colors.white,
+                        fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    trailing: Text(
+                      e.value,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: isNext ? NurKitabColors.gold : Colors.white70,
+                      ),
+                    ),
+                    leading: Icon(
+                      isNext ? Icons.notifications_active : Icons.notifications_none,
+                      color: isNext ? NurKitabColors.gold : NurKitabColors.goldDim,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -293,106 +920,259 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final warnaKartu = isDarkMode ? Colors.grey[900] : Colors.grey[100];
-    final warnaJudulMenu = isDarkMode ? Colors.teal : Colors.teal[700];
-    final warnaTeksUtama = isDarkMode ? Colors.white : Colors.black;
-    final warnaTeksSekunder = isDarkMode ? Colors.grey : Colors.grey[700];
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-          child: Text(
-            'Pengaturan Aplikasi',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: warnaJudulMenu),
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF003320), NurKitabColors.deepGreen],
         ),
-        const SizedBox(height: 10),
-        
-        Card(
-          color: warnaKartu,
-          child: SwitchListTile(
-            secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.teal),
-            title: Text('Mode Gelap', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
-            subtitle: Text(isDarkMode ? 'Aplikasi berwarna hitam' : 'Aplikasi berwarna putih', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
-            value: isDarkMode,
-            activeColor: Colors.teal,
-            onChanged: onThemeChanged,
-          ),
-        ),
-        
-        Card(
-          color: warnaKartu,
-          child: SwitchListTile(
-            secondary: const Icon(Icons.translate, color: Colors.teal),
-            title: Text('Tampilkan Terjemahan', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
-            subtitle: Text(tampilkanTerjemahan ? 'Terjemahan teks ditampilkan' : 'Hanya menampilkan teks Arab', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
-            value: tampilkanTerjemahan,
-            activeColor: Colors.teal,
-            onChanged: onTranslationChanged,
-          ),
-        ),
-        
-        Card(
-          color: warnaKartu,
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.format_size, color: Colors.teal),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Ukuran Font Bacaan', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
-                          Text('Atur skala besar kecil khusus teks ayat/bacaan', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('A', style: TextStyle(color: warnaTeksUtama, fontSize: 12)),
-                    Expanded(
-                      child: Slider(
-                        value: skalaFont,
-                        min: 0.8,
-                        max: 1.6,
-                        divisions: 4,
-                        activeColor: Colors.teal,
-                        inactiveColor: isDarkMode ? Colors.grey[800] : Colors.grey[400],
-                        label: '${(skalaFont * 100).toInt()}%',
-                        onChanged: onFontSizeChanged,
-                      ),
-                    ),
-                    Text('A', style: TextStyle(color: warnaTeksUtama, fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ],
+      ),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            child: Text(
+              'Pengaturan Aplikasi',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: NurKitabColors.gold),
             ),
           ),
-        ),
-
-        Card(
-          color: warnaKartu,
-          child: ListTile(
-            leading: const Icon(Icons.info_outline, color: Colors.teal),
-            title: Text('Tentang Aplikasi', style: TextStyle(color: warnaTeksUtama, fontSize: 16)),
-            subtitle: Text('Versi 1.0.0', style: TextStyle(color: warnaTeksSekunder, fontSize: 12)),
+          const SizedBox(height: 10),
+          _settingsCard(
+            SwitchListTile(
+              secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: NurKitabColors.gold),
+              title: const Text('Mode Gelap', style: TextStyle(color: Colors.white, fontSize: 16)),
+              subtitle: Text(
+                isDarkMode ? 'Tema gelap islami premium' : 'Tema terang',
+                style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+              ),
+              value: isDarkMode,
+              activeThumbColor: NurKitabColors.gold,
+              onChanged: onThemeChanged,
+            ),
           ),
-        ),
-      ],
+          _settingsCard(
+            SwitchListTile(
+              secondary: const Icon(Icons.translate, color: NurKitabColors.gold),
+              title: const Text('Tampilkan Terjemahan', style: TextStyle(color: Colors.white, fontSize: 16)),
+              subtitle: Text(
+                tampilkanTerjemahan ? 'Terjemahan teks ditampilkan' : 'Hanya menampilkan teks Arab',
+                style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+              ),
+              value: tampilkanTerjemahan,
+              activeThumbColor: NurKitabColors.gold,
+              onChanged: onTranslationChanged,
+            ),
+          ),
+          _settingsCard(
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.format_size, color: NurKitabColors.gold),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Ukuran Font Bacaan', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            Text(
+                              'Atur skala besar kecil khusus teks ayat/bacaan',
+                              style: TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Text('A', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Expanded(
+                        child: Slider(
+                          value: skalaFont,
+                          min: 0.8,
+                          max: 1.6,
+                          divisions: 4,
+                          activeColor: NurKitabColors.gold,
+                          inactiveColor: NurKitabColors.goldDim.withValues(alpha: 0.4),
+                          label: '${(skalaFont * 100).toInt()}%',
+                          onChanged: onFontSizeChanged,
+                        ),
+                      ),
+                      const Text('A', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _settingsCard(
+            const ListTile(
+              leading: Icon(Icons.info_outline, color: NurKitabColors.gold),
+              title: Text('Tentang Aplikasi', style: TextStyle(color: Colors.white, fontSize: 16)),
+              subtitle: Text('Versi 1.0.0', style: TextStyle(color: NurKitabColors.textMuted, fontSize: 12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _settingsCard(Widget child) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: nurKitabCardDecoration(radius: 14),
+      child: child,
     );
   }
 }
     
+class SholawatMaulidPage extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const SholawatMaulidPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = [
+      ('Sholawat', const [
+        'Sholawat Ibrahimiyah',
+        'Sholawat Jibril',
+        'Sholawat Nariyah',
+        'Sholawat Munjiyat',
+      ]),
+      ('Maulid & Qashidah', const [
+        'Maulid Simtutdurar (pembuka)',
+        'Qashidah Burdah (Bab 1)',
+        'Qashidah Ya Imamarusli',
+        'Qashidah Busro Lana',
+      ]),
+    ];
+
+    return Scaffold(
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Sholawat, Maulid & Qashidah'),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: sections.expand((section) sync* {
+          yield Padding(
+            padding: const EdgeInsets.only(bottom: 8, top: 4),
+            child: Text(
+              section.$1,
+              style: const TextStyle(color: NurKitabColors.gold, fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          );
+          for (final item in section.$2) {
+            yield Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: nurKitabCardDecoration(radius: 12),
+              child: ListTile(
+                title: Text(item, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IsiBacaanPage(
+                      judul: item,
+                      skalaFont: skalaFont,
+                      tampilkanTerjemahan: tampilkanTerjemahan,
+                      isDarkMode: isDarkMode,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class YasinTahlilPage extends StatelessWidget {
+  final double skalaFont;
+  final bool tampilkanTerjemahan;
+  final bool isDarkMode;
+
+  const YasinTahlilPage({
+    super.key,
+    required this.skalaFont,
+    required this.tampilkanTerjemahan,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      'Surah Yasin',
+      'Tahlil Ringkas',
+      'Tahlil Lengkap',
+      'Doa Tahlil Arwah',
+    ];
+
+    return Scaffold(
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Yasin & Tahlil'),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final judul = items[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: nurKitabCardDecoration(radius: 12),
+            child: ListTile(
+              leading: nurKitabAsset(NurKitabAssets.iconYasin, width: 40, height: 40),
+              title: Text(judul, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold),
+              onTap: () {
+                if (judul == 'Surah Yasin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HalamanMubarakQuran(
+                        nomorSurah: 36,
+                        judulSurah: 'Yasin',
+                        skalaFont: skalaFont,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IsiBacaanPage(
+                        judul: judul,
+                        skalaFont: skalaFont,
+                        tampilkanTerjemahan: tampilkanTerjemahan,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class SurahPendekPage extends StatefulWidget {
   final double skalaFont;
   final bool tampilkanTerjemahan;
@@ -436,45 +1216,58 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        title: const Text('Al-Qur\'an'),
-        backgroundColor: widget.isDarkMode ? Colors.black : Colors.teal,
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Al-Qur\'an'),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+          ? const Center(child: CircularProgressIndicator(color: NurKitabColors.gold))
           : ListView.builder(
+              padding: const EdgeInsets.all(12),
               itemCount: _daftarSurah.length,
               itemBuilder: (context, index) {
                 final surah = _daftarSurah[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.teal,
-                    child: Text(
-                      "${surah['nomor']}", 
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  title: Text(surah['namaLatin'], style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black)),
-                  subtitle: Text(
-                    "${surah['tempatTurun'].toString().toUpperCase()} • ${surah['jumlahAyat']} Ayat", 
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                  trailing: Text(
-                    surah['nama'], 
-                    style: const TextStyle(color: Colors.teal, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => HalamanMubarakQuran(
-                        nomorSurah: surah['nomor'], 
-                        judulSurah: surah['namaLatin'],
-                        skalaFont: widget.skalaFont,
-                        isDarkMode: widget.isDarkMode,
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: nurKitabCardDecoration(radius: 12),
+                  child: ListTile(
+                    leading: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          nurKitabAsset(NurKitabAssets.iconQuran, width: 44, height: 44),
+                          Text(
+                            "${surah['nomor']}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                            ),
+                          ),
+                        ],
                       ),
-                    ));
-                  },
+                    ),
+                    title: Text(surah['namaLatin'], style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      "${surah['tempatTurun'].toString().toUpperCase()} • ${surah['jumlahAyat']} Ayat",
+                      style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                    ),
+                    trailing: Text(
+                      surah['nama'],
+                      style: const TextStyle(color: NurKitabColors.gold, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => HalamanMubarakQuran(
+                          nomorSurah: surah['nomor'],
+                          judulSurah: surah['namaLatin'],
+                          skalaFont: widget.skalaFont,
+                          isDarkMode: widget.isDarkMode,
+                        ),
+                      ));
+                    },
+                  ),
                 );
               },
             ),
@@ -503,29 +1296,30 @@ class SholawatPage extends StatelessWidget {
       "Sholawat Munjiyat",
     ];
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        title: const Text('Kumpulan Sholawat'), 
-        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
-        foregroundColor: Colors.white
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Kumpulan Sholawat'),
       body: ListView.builder(
+        padding: const EdgeInsets.all(12),
         itemCount: sholawat.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: const Icon(Icons.favorite_border_rounded, color: Colors.teal),
-            title: Text(sholawat[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) => IsiBacaanPage(
-                  judul: sholawat[index],
-                  skalaFont: skalaFont,
-                  tampilkanTerjemahan: tampilkanTerjemahan,
-                  isDarkMode: isDarkMode,
-                ),
-              ));
-            },
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: nurKitabCardDecoration(radius: 12),
+            child: ListTile(
+              leading: nurKitabAsset(NurKitabAssets.iconSholawat, width: 40, height: 40),
+              title: Text(sholawat[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => IsiBacaanPage(
+                    judul: sholawat[index],
+                    skalaFont: skalaFont,
+                    tampilkanTerjemahan: tampilkanTerjemahan,
+                    isDarkMode: isDarkMode,
+                  ),
+                ));
+              },
+            ),
           );
         },
       ),
@@ -554,29 +1348,30 @@ class MaulidPage extends StatelessWidget {
       "Qashidah Busro Lana",
     ];
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        title: const Text('Maulid & Qashidah'), 
-        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
-        foregroundColor: Colors.white
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Maulid & Qashidah'),
       body: ListView.builder(
+        padding: const EdgeInsets.all(12),
         itemCount: maulid.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-            title: Text(maulid[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) => IsiBacaanPage(
-                  judul: maulid[index],
-                  skalaFont: skalaFont,
-                  tampilkanTerjemahan: tampilkanTerjemahan,
-                  isDarkMode: isDarkMode,
-                ),
-              ));
-            },
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: nurKitabCardDecoration(radius: 12),
+            child: ListTile(
+              leading: nurKitabAsset(NurKitabAssets.iconSholawat, width: 40, height: 40),
+              title: Text(maulid[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => IsiBacaanPage(
+                    judul: maulid[index],
+                    skalaFont: skalaFont,
+                    tampilkanTerjemahan: tampilkanTerjemahan,
+                    isDarkMode: isDarkMode,
+                  ),
+                ));
+              },
+            ),
           );
         },
       ),
@@ -605,29 +1400,30 @@ class HizibPage extends StatelessWidget {
       "Hizib Bahar (Pembuka)",
     ];
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        title: const Text('Hizib & Ratib'), 
-        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
-        foregroundColor: Colors.white
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Hizib & Ratib'),
       body: ListView.builder(
+        padding: const EdgeInsets.all(12),
         itemCount: hizib.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: const Icon(Icons.wb_sunny_rounded, color: Colors.teal),
-            title: Text(hizib[index], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.teal, size: 14),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) => IsiBacaanPage(
-                  judul: hizib[index],
-                  skalaFont: skalaFont,
-                  tampilkanTerjemahan: tampilkanTerjemahan,
-                  isDarkMode: isDarkMode,
-                ),
-              ));
-            },
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: nurKitabCardDecoration(radius: 12),
+            child: ListTile(
+              leading: nurKitabAsset(NurKitabAssets.iconHizib, width: 40, height: 40),
+              title: Text(hizib[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => IsiBacaanPage(
+                    judul: hizib[index],
+                    skalaFont: skalaFont,
+                    tampilkanTerjemahan: tampilkanTerjemahan,
+                    isDarkMode: isDarkMode,
+                  ),
+                ));
+              },
+            ),
           );
         },
       ),
@@ -716,53 +1512,41 @@ class IsiBacaanPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        title: Text(judul),
-        backgroundColor: isDarkMode ? Colors.black : Colors.teal, 
-        foregroundColor: Colors.white,
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar(judul),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.teal.withOpacity(0.3)),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: nurKitabCardDecoration(radius: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                teksArab,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26 * skalaFont,
+                  height: 2.2,
+                  fontFamily: 'Amiri',
+                ),
+                textAlign: TextAlign.right,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    teksArab,
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 26 * skalaFont,
-                      height: 2.2,
-                      fontFamily: 'Serif',
-                    ),
-                    textAlign: TextAlign.right,
+              if (tampilkanTerjemahan) ...[
+                Divider(color: NurKitabColors.gold.withValues(alpha: 0.4), height: 30),
+                Text(
+                  artiTeks,
+                  style: TextStyle(
+                    color: NurKitabColors.textMuted,
+                    fontSize: 15 * skalaFont,
+                    fontStyle: FontStyle.italic,
                   ),
-                  if (tampilkanTerjemahan) ...[
-                    const Divider(color: Colors.teal, height: 30),
-                    Text(
-                      artiTeks,
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.grey : Colors.grey[800],
-                        fontSize: 15 * skalaFont,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
+                  textAlign: TextAlign.left,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -823,33 +1607,23 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
-      appBar: AppBar(
-        backgroundColor: widget.isDarkMode ? Colors.black : Colors.teal,
-        foregroundColor: Colors.white,
-        title: Text(_detailSurah != null ? "${_detailSurah!['namaLatin']}" : widget.judulSurah),
-      ),
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar(_detailSurah != null ? "${_detailSurah!['namaLatin']}" : widget.judulSurah),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
-          : Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                    child: Text(
-                      _ambilGabunganAyat(),
-                      textDirection: TextDirection.rtl, 
-                      textAlign: TextAlign.justify,     
-                      style: TextStyle(
-                        fontSize: 26 * widget.skalaFont, 
-                        height: 2.4,        
-                        color: widget.isDarkMode ? Colors.white : Colors.black,
-                        fontFamily: 'Amiri',
-                      ),
-                    ),
-                  ),
+          ? const Center(child: CircularProgressIndicator(color: NurKitabColors.gold))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Text(
+                _ambilGabunganAyat(),
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.justify,
+                style: TextStyle(
+                  fontSize: 26 * widget.skalaFont,
+                  height: 2.4,
+                  color: Colors.white,
+                  fontFamily: 'Amiri',
                 ),
-              ],
+              ),
             ),
     );
   }
