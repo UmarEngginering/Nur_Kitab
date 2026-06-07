@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart'; 
 
 void main() {
   runApp(const NurKitabApp());
@@ -772,56 +774,184 @@ class _MosqueGlowPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class PrayerSchedulePage extends StatelessWidget {
+class PrayerSchedulePage extends StatefulWidget {
   const PrayerSchedulePage({super.key});
 
   @override
+  State<PrayerSchedulePage> createState() => _PrayerSchedulePageState();
+}
+
+class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
+  Map<String, String> _prayers = {};
+  bool _isLoading = true;
+  String _namaLokasi = "Mencari lokasi...";
+  String _errorMsg = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _dapatkanLokasiDanJadwal();
+  }
+
+  Future<void> _dapatkanLokasiDanJadwal() async {
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      // 1. Cek apakah layanan GPS aktif
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - GPS Mati)");
+        return;
+      }
+
+      // 2. Cek izin lokasi
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - Izin Ditolak)");
+          return;
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - Izin Diblokir)");
+        return;
+      } 
+
+      // 3. Dapatkan koordinat GPS asli dari HP
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
+      );
+
+      // 4. 🟢 REVERSE GEOCODING LEWAT WEB API (Lebih Stabil & Anti-Gagal di Emulator/HP)
+      String namaKotaDinamis = "Lokasi Anda";
+      try {
+        final urlGeo = 'https://nominatim.openstreetmap.org/reverse?lat=${position.latitude}&lon=${position.longitude}&format=json&accept-language=id';
+        
+        // Mengirim permintaan ke OpenStreetMap dengan User-Agent agar aman
+        final responGeo = await http.get(Uri.parse(urlGeo), headers: {
+          'User-Agent': 'NurKitabApp/1.0', 
+        });
+
+        if (responGeo.statusCode == 200) {
+          final dataGeo = json.decode(responGeo.body);
+          final address = dataGeo['address'];
+          if (address != null) {
+            // Mengambil nama Kabupaten/Kota, jika tidak ada ambil nama Kecamatan/Kota Madya
+            namaKotaDinamis = address['county'] ?? address['city'] ?? address['regency'] ?? address['town'] ?? "Lokasi Anda";
+          }
+        }
+      } catch (e) {
+        // Jika koneksi internet untuk mencari nama kota putus, gunakan angka koordinat sebagai cadangan terakhir
+        namaKotaDinamis = "Lokasi Anda (${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)})";
+      }
+
+      // 5. Ambil jadwal berdasarkan lokasi GPS asli dan nama kota hasil terjemahan web API
+      await _ambilJadwalSholat(
+        lat: position.latitude, 
+        lng: position.longitude, 
+        nama: namaKotaDinamis
+      );
+
+    } catch (e) {
+      setState(() {
+        _errorMsg = "Gagal memuat lokasi harian.";
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _ambilJadwalSholat({required double lat, required double lng, required String nama}) async {
+    try {
+      final sekarang = DateTime.now();
+      final tanggalStr = "${sekarang.day}-${sekarang.month}-${sekarang.year}";
+      
+      // Menggunakan Method Kemenag RI (Id: 20)
+      final url = 'https://api.aladhan.com/v1/timings/$tanggalStr?latitude=$lat&longitude=$lng&method=20';
+      
+      final respon = await http.get(Uri.parse(url));
+      if (respon.statusCode == 200) {
+        final dataTimings = json.decode(respon.body)['data']['timings'];
+        
+        setState(() {
+          _prayers = {
+            'Imsak': dataTimings['Imsak'] ?? '00:00',
+            'Subuh': dataTimings['Fajr'] ?? '00:00',
+            'Terbit': dataTimings['Sunrise'] ?? '00:00',
+            'Dzuhur': dataTimings['Dhuhr'] ?? '00:00',
+            'Ashar': dataTimings['Asr'] ?? '00:00',
+            'Maghrib': dataTimings['Maghrib'] ?? '00:00',
+            'Isya': dataTimings['Isha'] ?? '00:00',
+          };
+          _namaLokasi = nama;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception("Gagal memuat API");
+      }
+    } catch (e) {
+      setState(() {
+        _errorMsg = "Gagal mengambil data jadwal sholat.";
+        _isLoading = false;
+      });
+    }
+  }
+
+  int _keMenit(String waktu) {
+    final bagian = waktu.split(':');
+    return int.parse(bagian[0]) * 60 + int.parse(bagian[1]);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final prayers = {
-      'Imsak': '04:10', 
-      'subuh': '04:20', 
-      'Terbit': '05:35',
-      'Dzuhur': '11:38', 
-      'Ashar': '14:58', 
-      'Maghrib': '17:35', 
-      'Isya': '18:47',
-    };
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: NurKitabColors.deepGreen,
+        body: Center(child: CircularProgressIndicator(color: NurKitabColors.gold)),
+      );
+    }
+
+    if (_errorMsg.isNotEmpty && _prayers.isEmpty) {
+      return Scaffold(
+        backgroundColor: NurKitabColors.deepGreen,
+        body: Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.white))),
+      );
+    }
+
     final sekarang = DateTime.now();
     final sekarangDalamMenit = sekarang.hour * 60 + sekarang.minute;
 
-    int keMenit(String waktu) {
-      final bagian = waktu.split(':');
-      return int.parse(bagian[0]) * 60 + int.parse(bagian[1]);
-    }
-
-    String waktuSholatBerikutnya = prayers['Imsak']!; 
+    String waktuSholatBerikutnya = _prayers['Imsak']!;
     String namaSholatBerikutnya = 'Imsak';
 
-    if (sekarangDalamMenit < keMenit(prayers['Imsak']!)) {
-      waktuSholatBerikutnya = prayers['Imsak']!;
-      namaSholatBerikutnya = "Imsak"; 
-    } else if (sekarangDalamMenit < keMenit(prayers['subuh']!)) {
-      waktuSholatBerikutnya = prayers['subuh']!;
-      namaSholatBerikutnya = "Subuh"; 
-    } else if (sekarangDalamMenit < keMenit(prayers['Terbit']!)) {
-      waktuSholatBerikutnya = prayers['Terbit']!;
-      namaSholatBerikutnya = "Terbit"; 
-    } else if (sekarangDalamMenit < keMenit(prayers['Dzuhur']!)) {
-      waktuSholatBerikutnya = prayers['Dzuhur']!;
-      namaSholatBerikutnya = "Dzuhur"; 
-    } else if (sekarangDalamMenit < keMenit(prayers['Ashar']!)) {
-      waktuSholatBerikutnya = prayers['Ashar']!;
-      namaSholatBerikutnya = "Ashar"; 
-    } else if (sekarangDalamMenit < keMenit(prayers['Maghrib']!)) {
-      waktuSholatBerikutnya = prayers['Maghrib']!;
-      namaSholatBerikutnya = "Maghrib";
-    } else if (sekarangDalamMenit < keMenit(prayers['Isya']!)) {
-      waktuSholatBerikutnya = prayers['Isya']!;
-      namaSholatBerikutnya = "Isya"; 
-    } else {
-      waktuSholatBerikutnya = prayers['Imsak']!;
+    if (sekarangDalamMenit < _keMenit(_prayers['Imsak']!)) {
+      waktuSholatBerikutnya = _prayers['Imsak']!;
       namaSholatBerikutnya = "Imsak";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Subuh']!)) {
+      waktuSholatBerikutnya = _prayers['Subuh']!;
+      namaSholatBerikutnya = "Subuh";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Terbit']!)) {
+      waktuSholatBerikutnya = _prayers['Terbit']!;
+      namaSholatBerikutnya = "Terbit";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Dzuhur']!)) {
+      waktuSholatBerikutnya = _prayers['Dzuhur']!;
+      namaSholatBerikutnya = "Dzuhur";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Ashar']!)) {
+      waktuSholatBerikutnya = _prayers['Ashar']!;
+      namaSholatBerikutnya = "Ashar";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Maghrib']!)) {
+      waktuSholatBerikutnya = _prayers['Maghrib']!;
+      namaSholatBerikutnya = "Maghrib";
+    } else if (sekarangDalamMenit < _keMenit(_prayers['Isya']!)) {
+      waktuSholatBerikutnya = _prayers['Isya']!;
+      namaSholatBerikutnya = "Isya";
+    } else {
+      waktuSholatBerikutnya = _prayers['Imsak']!;
+      namaSholatBerikutnya = "Imsak (Besok)";
     }
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -836,14 +966,14 @@ class PrayerSchedulePage extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [NurKitabColors.cardGreenLight, NurKitabColors.deepGreen],
               ),
               border: Border(bottom: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.3))),
             ),
             child: Column(
               children: [
-                const Text('Jakarta, Indonesia', style: TextStyle(fontSize: 16, color: Colors.white)),
+                Text(_namaLokasi, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 12),
                 Text(
                   waktuSholatBerikutnya,
@@ -860,8 +990,8 @@ class PrayerSchedulePage extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
-              children: prayers.entries.map((e) {
-                final isNext = e.key.toLowerCase() == namaSholatBerikutnya.toLowerCase();
+              children: _prayers.entries.map((e) {
+                final isNext = e.key.toLowerCase() == namaSholatBerikutnya.toLowerCase().replaceAll(' (besok)', '');
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: nurKitabCardDecoration(radius: 12).copyWith(
@@ -899,7 +1029,6 @@ class PrayerSchedulePage extends StatelessWidget {
     );
   }
 }
-
 class ProfilePage extends StatelessWidget {
   final bool isDarkMode;
   final bool tampilkanTerjemahan;
