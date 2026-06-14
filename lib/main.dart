@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart'; 
+import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 🟢 Wajib untuk membaca/menyimpan memori
 
 void main() {
   runApp(const NurKitabApp());
@@ -85,7 +87,13 @@ class NurKitabApp extends StatelessWidget {
 
 AppBar nurKitabAppBar(String title) {
   return AppBar(
-    title: Text(title, style: const TextStyle(color: NurKitabColors.gold, fontWeight: FontWeight.w600)),
+    title: Text(
+      title,
+      style: const TextStyle(
+        color: NurKitabColors.gold,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
     backgroundColor: NurKitabColors.deepGreen,
     foregroundColor: NurKitabColors.gold,
     iconTheme: const IconThemeData(color: NurKitabColors.gold),
@@ -97,7 +105,10 @@ BoxDecoration nurKitabCardDecoration({double radius = 16}) {
   return BoxDecoration(
     color: NurKitabColors.cardGreen.withValues(alpha: 0.92),
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.45), width: 1),
+    border: Border.all(
+      color: NurKitabColors.gold.withValues(alpha: 0.45),
+      width: 1,
+    ),
   );
 }
 
@@ -132,7 +143,8 @@ class _HomePageState extends State<HomePage> {
         tampilkanTerjemahan: tampilkanTerjemahan,
         skalaFont: skalaFont,
         onThemeChanged: (nilai) => setState(() => isDarkMode = nilai),
-        onTranslationChanged: (nilai) => setState(() => tampilkanTerjemahan = nilai),
+        onTranslationChanged: (nilai) =>
+            setState(() => tampilkanTerjemahan = nilai),
         onFontSizeChanged: (nilai) => setState(() => skalaFont = nilai),
       ),
     ];
@@ -160,7 +172,11 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  nurKitabAsset(NurKitabAssets.archFrame, width: 48, height: 56),
+                  nurKitabAsset(
+                    NurKitabAssets.archFrame,
+                    width: 48,
+                    height: 56,
+                  ),
                   const SizedBox(width: 12),
                   const Text(
                     'Nur Kitab',
@@ -176,24 +192,42 @@ class _HomePageState extends State<HomePage> {
             ),
             const Divider(color: NurKitabColors.goldDim),
             ListTile(
-              leading: const Icon(Icons.home_rounded, color: NurKitabColors.gold),
-              title: const Text('Beranda', style: TextStyle(color: Colors.white)),
+              leading: const Icon(
+                Icons.home_rounded,
+                color: NurKitabColors.gold,
+              ),
+              title: const Text(
+                'Beranda',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => currentIndex = 0);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.calendar_month_outlined, color: NurKitabColors.gold),
-              title: const Text('Jadwal Sholat', style: TextStyle(color: Colors.white)),
+              leading: const Icon(
+                Icons.calendar_month_outlined,
+                color: NurKitabColors.gold,
+              ),
+              title: const Text(
+                'Jadwal Sholat',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => currentIndex = 1);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings_outlined, color: NurKitabColors.gold),
-              title: const Text('Pengaturan', style: TextStyle(color: Colors.white)),
+              leading: const Icon(
+                Icons.settings_outlined,
+                color: NurKitabColors.gold,
+              ),
+              title: const Text(
+                'Pengaturan',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => currentIndex = 2);
@@ -217,7 +251,9 @@ class _NurKitabBottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: NurKitabColors.navBackground,
-        border: Border(top: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.15))),
+        border: Border(
+          top: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.15)),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -282,7 +318,7 @@ class _NurKitabBottomNav extends StatelessWidget {
   }
 }
 
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   final double skalaFont;
   final bool tampilkanTerjemahan;
   final bool isDarkMode;
@@ -299,13 +335,40 @@ class HomeContent extends StatelessWidget {
   });
 
   @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  int _lastSurahNomor = 18; // Default awal jika memori kosong: Al-Kahfi
+  String _lastSurahNama = 'Al-Kahfi';
+
+  @override
+  void initState() {
+    super.initState();
+    _muatBacaanTerakhir();
+  }
+
+  // Fungsi untuk menarik data dari memori penyimpanan lokal HP
+  Future<void> _muatBacaanTerakhir() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lastSurahNomor = prefs.getInt('last_surah_nomor') ?? 18;
+      _lastSurahNama = prefs.getString('last_surah_nama') ?? 'Al-Kahfi';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF003320), NurKitabColors.deepGreen, Color(0xFF001408)],
+          colors: [
+            Color(0xFF003320),
+            NurKitabColors.deepGreen,
+            Color(0xFF001408),
+          ],
         ),
       ),
       child: Stack(
@@ -331,7 +394,11 @@ class HomeContent extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: Opacity(
                       opacity: 0.22,
-                      child: nurKitabAsset(NurKitabAssets.mosqueDome, height: 160, fit: BoxFit.contain),
+                      child: nurKitabAsset(
+                        NurKitabAssets.mosqueDome,
+                        height: 160,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -339,7 +406,11 @@ class HomeContent extends StatelessWidget {
                     left: 8,
                     child: Opacity(
                       opacity: 0.45,
-                      child: nurKitabAsset(NurKitabAssets.lantern, width: 56, height: 90),
+                      child: nurKitabAsset(
+                        NurKitabAssets.lantern,
+                        width: 56,
+                        height: 90,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -347,7 +418,11 @@ class HomeContent extends StatelessWidget {
                     right: 8,
                     child: Opacity(
                       opacity: 0.45,
-                      child: nurKitabAsset(NurKitabAssets.lantern, width: 56, height: 90),
+                      child: nurKitabAsset(
+                        NurKitabAssets.lantern,
+                        width: 56,
+                        height: 90,
+                      ),
                     ),
                   ),
                   CustomPaint(painter: _MosqueGlowPainter()),
@@ -365,7 +440,7 @@ class HomeContent extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildGreeting(),
                 const SizedBox(height: 24),
-                _buildContinueCard(context),
+                _buildContinueCard(context), // Kartu Lanjutkan dinamis
                 const SizedBox(height: 20),
                 _buildMenuGrid(context),
               ],
@@ -381,13 +456,21 @@ class HomeContent extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          onPressed: onMenuTap,
-          icon: const Icon(Icons.menu_rounded, color: NurKitabColors.gold, size: 28),
+          onPressed: widget.onMenuTap,
+          icon: const Icon(
+            Icons.menu_rounded,
+            color: NurKitabColors.gold,
+            size: 28,
+          ),
         ),
         IconButton(
-          onPressed: onMoonTap,
+          onPressed: widget.onMoonTap,
           padding: EdgeInsets.zero,
-          icon: nurKitabAsset(NurKitabAssets.crescentMoon, width: 32, height: 32),
+          icon: nurKitabAsset(
+            NurKitabAssets.crescentMoon,
+            width: 32,
+            height: 32,
+          ),
         ),
       ],
     );
@@ -402,7 +485,12 @@ class HomeContent extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              nurKitabAsset(NurKitabAssets.archFrame, width: 88, height: 100, fit: BoxFit.contain),
+              nurKitabAsset(
+                NurKitabAssets.archFrame,
+                width: 88,
+                height: 100,
+                fit: BoxFit.contain,
+              ),
               const Padding(
                 padding: EdgeInsets.only(bottom: 6),
                 child: Text(
@@ -433,7 +521,11 @@ class HomeContent extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond, size: 8, color: NurKitabColors.gold.withValues(alpha: 0.7)),
+            Icon(
+              Icons.diamond,
+              size: 8,
+              color: NurKitabColors.gold.withValues(alpha: 0.7),
+            ),
             const SizedBox(width: 8),
             Text(
               'cahaya ilmu, penuntun hati',
@@ -445,18 +537,36 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.diamond, size: 8, color: NurKitabColors.gold.withValues(alpha: 0.7)),
+            Icon(
+              Icons.diamond,
+              size: 8,
+              color: NurKitabColors.gold.withValues(alpha: 0.7),
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: Divider(color: NurKitabColors.gold.withValues(alpha: 0.35), thickness: 0.5)),
+            Expanded(
+              child: Divider(
+                color: NurKitabColors.gold.withValues(alpha: 0.35),
+                thickness: 0.5,
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Icon(Icons.auto_awesome, size: 12, color: NurKitabColors.gold.withValues(alpha: 0.5)),
+              child: Icon(
+                Icons.auto_awesome,
+                size: 12,
+                color: NurKitabColors.gold.withValues(alpha: 0.5),
+              ),
             ),
-            Expanded(child: Divider(color: NurKitabColors.gold.withValues(alpha: 0.35), thickness: 0.5)),
+            Expanded(
+              child: Divider(
+                color: NurKitabColors.gold.withValues(alpha: 0.35),
+                thickness: 0.5,
+              ),
+            ),
           ],
         ),
       ],
@@ -503,7 +613,10 @@ class HomeContent extends StatelessWidget {
                 height: 76,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.6), width: 1.5),
+                  border: Border.all(
+                    color: NurKitabColors.gold.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
                 ),
                 child: Center(
                   child: nurKitabAsset(
@@ -520,7 +633,7 @@ class HomeContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'LANJUTKAN BACAAN TERAKHIR',
+                      'LANJUTKAN BACAAN TERAKHIR AL-QURAN',
                       style: TextStyle(
                         color: NurKitabColors.gold.withValues(alpha: 0.85),
                         fontSize: 9,
@@ -529,28 +642,20 @@ class HomeContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Al-Kahfi',
-                      style: TextStyle(
+                    Text(
+                      _lastSurahNama, // 🟢 Dinamis mengikuti data memori lokal
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
-                      'Ayat 12',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: 12, color: NurKitabColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Terakhir dibuka 2 jam yang lalu',
-                          style: TextStyle(color: NurKitabColors.textMuted, fontSize: 10),
-                        ),
-                      ],
+                    Text(
+                      'Surat Ke-$_lastSurahNomor', // 🟢 Menampilkan urutan nomor surah dinamis
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -562,24 +667,31 @@ class HomeContent extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(24),
                   onTap: () {
+                    // 🟢 Membuka surah terakhir yang terekam
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => HalamanMubarakQuran(
-                          nomorSurah: 18,
-                          judulSurah: 'Al-Kahfi',
-                          skalaFont: skalaFont,
-                          isDarkMode: isDarkMode,
+                          nomorSurah: _lastSurahNomor,
+                          judulSurah: _lastSurahNama,
+                          skalaFont: widget.skalaFont,
+                          isDarkMode: widget.isDarkMode,
                         ),
                       ),
-                    );
+                    ).then(
+                      (_) => _muatBacaanTerakhir(),
+                    ); // 🟢 Refresh data saat user kembali ke Beranda
                   },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.play_arrow_rounded, color: Colors.black, size: 20),
+                        Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.black,
+                          size: 20,
+                        ),
                         SizedBox(width: 2),
                         Text(
                           'Lanjutkan',
@@ -600,7 +712,11 @@ class HomeContent extends StatelessWidget {
         Positioned(
           top: -6,
           left: 20,
-          child: Icon(Icons.bookmark, color: NurKitabColors.gold.withValues(alpha: 0.9), size: 22),
+          child: Icon(
+            Icons.bookmark,
+            color: NurKitabColors.gold.withValues(alpha: 0.9),
+            size: 22,
+          ),
         ),
       ],
     );
@@ -613,39 +729,42 @@ class HomeContent extends StatelessWidget {
         description: 'Baca, pahami, dan renungi firman Allah setiap hari.',
         imageAsset: NurKitabAssets.iconQuran,
         page: SurahPendekPage(
-          skalaFont: skalaFont,
-          tampilkanTerjemahan: tampilkanTerjemahan,
-          isDarkMode: isDarkMode,
+          skalaFont: widget.skalaFont,
+          tampilkanTerjemahan: widget.tampilkanTerjemahan,
+          isDarkMode: widget.isDarkMode,
         ),
       ),
       _MenuItem(
         title: 'Sholawat, Maulid & Qashidah',
-        description: 'Kumpulan sholawat pilihan, maulid, dan qashidah yang indah penuh makna.',
+        description:
+            'Kumpulan sholawat pilihan, maulid, dan qashidah yang indah penuh makna.',
         imageAsset: NurKitabAssets.iconSholawat,
         page: SholawatMaulidPage(
-          skalaFont: skalaFont,
-          tampilkanTerjemahan: tampilkanTerjemahan,
-          isDarkMode: isDarkMode,
+          skalaFont: widget.skalaFont,
+          tampilkanTerjemahan: widget.tampilkanTerjemahan,
+          isDarkMode: widget.isDarkMode,
         ),
       ),
       _MenuItem(
         title: 'Yasin & Tahlil',
-        description: 'Bacaan Yasin dan tahlil untuk mendoakan dan mengingat ahli kubur.',
+        description:
+            'Bacaan Yasin dan tahlil untuk mendoakan dan mengingat ahli kubur.',
         imageAsset: NurKitabAssets.iconYasin,
         page: YasinTahlilPage(
-          skalaFont: skalaFont,
-          tampilkanTerjemahan: tampilkanTerjemahan,
-          isDarkMode: isDarkMode,
+          skalaFont: widget.skalaFont,
+          tampilkanTerjemahan: widget.tampilkanTerjemahan,
+          isDarkMode: widget.isDarkMode,
         ),
       ),
       _MenuItem(
         title: 'Hizib & Ratib',
-        description: 'Kumpulan hizib dan ratib harian untuk wirid dan penjagaan diri.',
+        description:
+            'Kumpulan hizib dan ratib harian untuk wirid dan penjagaan diri.',
         imageAsset: NurKitabAssets.iconHizib,
         page: HizibPage(
-          skalaFont: skalaFont,
-          tampilkanTerjemahan: tampilkanTerjemahan,
-          isDarkMode: isDarkMode,
+          skalaFont: widget.skalaFont,
+          tampilkanTerjemahan: widget.tampilkanTerjemahan,
+          isDarkMode: widget.isDarkMode,
         ),
       ),
     ];
@@ -666,7 +785,14 @@ class HomeContent extends StatelessWidget {
 
   Widget _buildGridCard(BuildContext context, _MenuItem item) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => item.page)),
+      // 🟢 Ditambahkan .then(...) agar ketika masuk menu Quran lalu kembali, data kartu langsung terrefrsh dinamis
+      onTap: () =>
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => item.page),
+          ).then((_) {
+            _muatBacaanTerakhir();
+          }),
       child: Container(
         decoration: nurKitabCardDecoration(radius: 16).copyWith(
           gradient: LinearGradient(
@@ -686,17 +812,16 @@ class HomeContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // GANTI dengan memanggil nurKitabAsset langsung:
-                    SizedBox(
+                  SizedBox(
                     width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.44, // Mengatur tinggi proporsional ikon
+                    height: constraints.maxHeight * 0.44,
                     child: Center(
-                    child: nurKitabAsset(
-                    item.imageAsset,
-                    fit: BoxFit.contain,
-                        ),
+                      child: nurKitabAsset(
+                        item.imageAsset,
+                        fit: BoxFit.contain,
                       ),
                     ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     item.title,
@@ -727,9 +852,15 @@ class HomeContent extends StatelessWidget {
                       height: 24,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: NurKitabColors.gold.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: NurKitabColors.gold.withValues(alpha: 0.5),
+                        ),
                       ),
-                      child: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 16),
+                      child: const Icon(
+                        Icons.chevron_right,
+                        color: NurKitabColors.gold,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -761,12 +892,15 @@ class _MosqueGlowPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width * 0.5, size.height * 0.12);
     final glow = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          NurKitabColors.gold.withValues(alpha: 0.12),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.45));
+      ..shader =
+          RadialGradient(
+            colors: [
+              NurKitabColors.gold.withValues(alpha: 0.12),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromCircle(center: center, radius: size.width * 0.45),
+          );
     canvas.drawCircle(center, size.width * 0.45, glow);
   }
 
@@ -787,74 +921,48 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
   String _namaLokasi = "Mencari lokasi...";
   String _errorMsg = "";
 
+  Timer? _timer;
+  String _waktuSekarang = "";
+  String _tanggalMasehi = "";
+  String _tanggalHijriyah = "";
+
   @override
   void initState() {
     super.initState();
+    _waktuSekarang = _formatWaktu(DateTime.now());
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      if (mounted) {
+        setState(() {
+          _waktuSekarang = _formatWaktu(DateTime.now());
+        });
+      }
+    });
     _dapatkanLokasiDanJadwal();
+  }
+
+  String _formatWaktu(DateTime time) {
+    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}";
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _dapatkanLokasiDanJadwal() async {
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
+      final prefs = await SharedPreferences.getInstance();
+      final savedLat = prefs.getDouble('jadwal_lat');
+      final savedLng = prefs.getDouble('jadwal_lng');
+      final savedNama = prefs.getString('jadwal_nama_kota');
 
-      // 1. Cek apakah layanan GPS aktif
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - GPS Mati)");
+      if (savedLat != null && savedLng != null && savedNama != null) {
+        await _ambilJadwalSholat(lat: savedLat, lng: savedLng, nama: savedNama);
         return;
       }
 
-      // 2. Cek izin lokasi
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - Izin Ditolak)");
-          return;
-        }
-      }
-      
-      if (permission == LocationPermission.deniedForever) {
-        _ambilJadwalSholat(lat: -7.1561, lng: 113.4812, nama: "Pamekasan (Default - Izin Diblokir)");
-        return;
-      } 
-
-      // 3. Dapatkan koordinat GPS asli dari HP
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
-      );
-
-      // 4. 🟢 REVERSE GEOCODING LEWAT WEB API (Lebih Stabil & Anti-Gagal di Emulator/HP)
-      String namaKotaDinamis = "Lokasi Anda";
-      try {
-        final urlGeo = 'https://nominatim.openstreetmap.org/reverse?lat=${position.latitude}&lon=${position.longitude}&format=json&accept-language=id';
-        
-        // Mengirim permintaan ke OpenStreetMap dengan User-Agent agar aman
-        final responGeo = await http.get(Uri.parse(urlGeo), headers: {
-          'User-Agent': 'NurKitabApp/1.0', 
-        });
-
-        if (responGeo.statusCode == 200) {
-          final dataGeo = json.decode(responGeo.body);
-          final address = dataGeo['address'];
-          if (address != null) {
-            // Mengambil nama Kabupaten/Kota, jika tidak ada ambil nama Kecamatan/Kota Madya
-            namaKotaDinamis = address['county'] ?? address['city'] ?? address['regency'] ?? address['town'] ?? "Lokasi Anda";
-          }
-        }
-      } catch (e) {
-        // Jika koneksi internet untuk mencari nama kota putus, gunakan angka koordinat sebagai cadangan terakhir
-        namaKotaDinamis = "Lokasi Anda (${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)})";
-      }
-
-      // 5. Ambil jadwal berdasarkan lokasi GPS asli dan nama kota hasil terjemahan web API
-      await _ambilJadwalSholat(
-        lat: position.latitude, 
-        lng: position.longitude, 
-        nama: namaKotaDinamis
-      );
-
+      await _cariLokasiGPSTerbaru();
     } catch (e) {
       setState(() {
         _errorMsg = "Gagal memuat lokasi harian.";
@@ -863,19 +971,134 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
     }
   }
 
-  Future<void> _ambilJadwalSholat({required double lat, required double lng, required String nama}) async {
+  Future<void> _cariLokasiGPSTerbaru() async {
+    setState(() {
+      _isLoading = true;
+      _errorMsg = "";
+      _namaLokasi = "Mencari lokasi terbaru...";
+    });
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await _simpanLokasiDanAmbilJadwal(
+          -7.1561,
+          113.4812,
+          "Pamekasan (Default - GPS Mati)",
+        );
+        return;
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          await _simpanLokasiDanAmbilJadwal(
+            -7.1561,
+            113.4812,
+            "Pamekasan (Default - Izin Ditolak)",
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        await _simpanLokasiDanAmbilJadwal(
+          -7.1561,
+          113.4812,
+          "Pamekasan (Default - Izin Diblokir)",
+        );
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+        ),
+      );
+
+      String namaKotaDinamis = "Lokasi Anda";
+      try {
+        final urlGeo =
+            'https://nominatim.openstreetmap.org/reverse?lat=${position.latitude}&lon=${position.longitude}&format=json&accept-language=id';
+
+        final responGeo = await http.get(
+          Uri.parse(urlGeo),
+          headers: {'User-Agent': 'NurKitabApp/1.0'},
+        );
+
+        if (responGeo.statusCode == 200) {
+          final dataGeo = json.decode(responGeo.body);
+          final address = dataGeo['address'];
+          if (address != null) {
+            namaKotaDinamis =
+                address['county'] ??
+                address['city'] ??
+                address['regency'] ??
+                address['town'] ??
+                "Lokasi Anda";
+          }
+        }
+      } catch (e) {
+        namaKotaDinamis =
+            "Lokasi Anda (${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)})";
+      }
+
+      await _simpanLokasiDanAmbilJadwal(
+        position.latitude,
+        position.longitude,
+        namaKotaDinamis,
+      );
+    } catch (e) {
+      setState(() {
+        _errorMsg = "Gagal memuat lokasi harian.";
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _simpanLokasiDanAmbilJadwal(
+    double lat,
+    double lng,
+    String nama,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('jadwal_lat', lat);
+    await prefs.setDouble('jadwal_lng', lng);
+    await prefs.setString('jadwal_nama_kota', nama);
+    await _ambilJadwalSholat(lat: lat, lng: lng, nama: nama);
+  }
+
+  Future<void> _ambilJadwalSholat({
+    required double lat,
+    required double lng,
+    required String nama,
+  }) async {
     try {
       final sekarang = DateTime.now();
       final tanggalStr = "${sekarang.day}-${sekarang.month}-${sekarang.year}";
-      
+
       // Menggunakan Method Kemenag RI (Id: 20)
-      final url = 'https://api.aladhan.com/v1/timings/$tanggalStr?latitude=$lat&longitude=$lng&method=20';
-      
+      final url =
+          'https://api.aladhan.com/v1/timings/$tanggalStr?latitude=$lat&longitude=$lng&method=20';
+
       final respon = await http.get(Uri.parse(url));
       if (respon.statusCode == 200) {
-        final dataTimings = json.decode(respon.body)['data']['timings'];
-        
+        final dataJson = json.decode(respon.body)['data'];
+        final dataTimings = dataJson['timings'];
+        final dateInfo = dataJson['date'];
+
         setState(() {
+          _tanggalMasehi = dateInfo['readable'] ?? '';
+
+          if (dateInfo['hijri'] != null) {
+            final hijri = dateInfo['hijri'];
+            _tanggalHijriyah =
+                "${hijri['day']} ${hijri['month']['en']} ${hijri['year']} H";
+          }
+
           _prayers = {
             'Imsak': dataTimings['Imsak'] ?? '00:00',
             'Subuh': dataTimings['Fajr'] ?? '00:00',
@@ -909,14 +1132,18 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: NurKitabColors.deepGreen,
-        body: Center(child: CircularProgressIndicator(color: NurKitabColors.gold)),
+        body: Center(
+          child: CircularProgressIndicator(color: NurKitabColors.gold),
+        ),
       );
     }
 
     if (_errorMsg.isNotEmpty && _prayers.isEmpty) {
       return Scaffold(
         backgroundColor: NurKitabColors.deepGreen,
-        body: Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.white))),
+        body: Center(
+          child: Text(_errorMsg, style: const TextStyle(color: Colors.white)),
+        ),
       );
     }
 
@@ -964,25 +1191,137 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [NurKitabColors.cardGreenLight, NurKitabColors.deepGreen],
+                colors: [
+                  NurKitabColors.cardGreenLight,
+                  NurKitabColors.deepGreen,
+                ],
               ),
-              border: Border(bottom: BorderSide(color: NurKitabColors.gold.withValues(alpha: 0.3))),
+              border: Border(
+                bottom: BorderSide(
+                  color: NurKitabColors.gold.withValues(alpha: 0.3),
+                ),
+              ),
             ),
             child: Column(
               children: [
-                Text(_namaLokasi, style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 12),
-                Text(
-                  waktuSholatBerikutnya,
-                  style: const TextStyle(fontSize: 56, fontWeight: FontWeight.bold, color: NurKitabColors.gold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: NurKitabColors.gold,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        _namaLokasi,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: _cariLokasiGPSTerbaru,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.refresh,
+                          color: NurKitabColors.gold,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 16),
                 Text(
-                  "Menuju $namaSholatBerikutnya",
-                  style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.7)),
+                  _waktuSekarang,
+                  style: const TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (_tanggalHijriyah.isNotEmpty)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "$_tanggalHijriyah • $_tanggalMasehi",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: NurKitabColors.gold.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  IslamicCalendarPage(namaLokasi: _namaLokasi),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: NurKitabColors.gold.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_month_outlined,
+                            color: NurKitabColors.gold,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: NurKitabColors.cardGreen.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: NurKitabColors.gold.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        waktuSholatBerikutnya,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: NurKitabColors.gold,
+                        ),
+                      ),
+                      Text(
+                        "Menuju $namaSholatBerikutnya",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -991,12 +1330,19 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: _prayers.entries.map((e) {
-                final isNext = e.key.toLowerCase() == namaSholatBerikutnya.toLowerCase().replaceAll(' (besok)', '');
+                final isNext =
+                    e.key.toLowerCase() ==
+                    namaSholatBerikutnya.toLowerCase().replaceAll(
+                      ' (besok)',
+                      '',
+                    );
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: nurKitabCardDecoration(radius: 12).copyWith(
                     border: Border.all(
-                      color: isNext ? NurKitabColors.gold.withValues(alpha: 0.6) : NurKitabColors.gold.withValues(alpha: 0.2),
+                      color: isNext
+                          ? NurKitabColors.gold.withValues(alpha: 0.6)
+                          : NurKitabColors.gold.withValues(alpha: 0.2),
                     ),
                   ),
                   child: ListTile(
@@ -1004,7 +1350,9 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
                       e.key,
                       style: TextStyle(
                         color: isNext ? NurKitabColors.gold : Colors.white,
-                        fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isNext
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                     trailing: Text(
@@ -1016,8 +1364,12 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
                       ),
                     ),
                     leading: Icon(
-                      isNext ? Icons.notifications_active : Icons.notifications_none,
-                      color: isNext ? NurKitabColors.gold : NurKitabColors.goldDim,
+                      isNext
+                          ? Icons.notifications_active
+                          : Icons.notifications_none,
+                      color: isNext
+                          ? NurKitabColors.gold
+                          : NurKitabColors.goldDim,
                     ),
                   ),
                 );
@@ -1029,6 +1381,7 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
     );
   }
 }
+
 class ProfilePage extends StatelessWidget {
   final bool isDarkMode;
   final bool tampilkanTerjemahan;
@@ -1064,17 +1417,30 @@ class ProfilePage extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
             child: Text(
               'Pengaturan Aplikasi',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: NurKitabColors.gold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: NurKitabColors.gold,
+              ),
             ),
           ),
           const SizedBox(height: 10),
           _settingsCard(
             SwitchListTile(
-              secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: NurKitabColors.gold),
-              title: const Text('Mode Gelap', style: TextStyle(color: Colors.white, fontSize: 16)),
+              secondary: Icon(
+                isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: NurKitabColors.gold,
+              ),
+              title: const Text(
+                'Mode Gelap',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
               subtitle: Text(
                 isDarkMode ? 'Tema gelap islami premium' : 'Tema terang',
-                style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                style: const TextStyle(
+                  color: NurKitabColors.textMuted,
+                  fontSize: 12,
+                ),
               ),
               value: isDarkMode,
               activeThumbColor: NurKitabColors.gold,
@@ -1083,11 +1449,22 @@ class ProfilePage extends StatelessWidget {
           ),
           _settingsCard(
             SwitchListTile(
-              secondary: const Icon(Icons.translate, color: NurKitabColors.gold),
-              title: const Text('Tampilkan Terjemahan', style: TextStyle(color: Colors.white, fontSize: 16)),
+              secondary: const Icon(
+                Icons.translate,
+                color: NurKitabColors.gold,
+              ),
+              title: const Text(
+                'Tampilkan Terjemahan',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
               subtitle: Text(
-                tampilkanTerjemahan ? 'Terjemahan teks ditampilkan' : 'Hanya menampilkan teks Arab',
-                style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                tampilkanTerjemahan
+                    ? 'Terjemahan teks ditampilkan'
+                    : 'Hanya menampilkan teks Arab',
+                style: const TextStyle(
+                  color: NurKitabColors.textMuted,
+                  fontSize: 12,
+                ),
               ),
               value: tampilkanTerjemahan,
               activeThumbColor: NurKitabColors.gold,
@@ -1108,10 +1485,19 @@ class ProfilePage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Ukuran Font Bacaan', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            Text(
+                              'Ukuran Font Bacaan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
                             Text(
                               'Atur skala besar kecil khusus teks ayat/bacaan',
-                              style: TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                              style: TextStyle(
+                                color: NurKitabColors.textMuted,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -1121,7 +1507,10 @@ class ProfilePage extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      const Text('A', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      const Text(
+                        'A',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
                       Expanded(
                         child: Slider(
                           value: skalaFont,
@@ -1129,12 +1518,21 @@ class ProfilePage extends StatelessWidget {
                           max: 1.6,
                           divisions: 4,
                           activeColor: NurKitabColors.gold,
-                          inactiveColor: NurKitabColors.goldDim.withValues(alpha: 0.4),
+                          inactiveColor: NurKitabColors.goldDim.withValues(
+                            alpha: 0.4,
+                          ),
                           label: '${(skalaFont * 100).toInt()}%',
                           onChanged: onFontSizeChanged,
                         ),
                       ),
-                      const Text('A', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'A',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -1144,8 +1542,14 @@ class ProfilePage extends StatelessWidget {
           _settingsCard(
             const ListTile(
               leading: Icon(Icons.info_outline, color: NurKitabColors.gold),
-              title: Text('Tentang Aplikasi', style: TextStyle(color: Colors.white, fontSize: 16)),
-              subtitle: Text('Versi 1.0.0', style: TextStyle(color: NurKitabColors.textMuted, fontSize: 12)),
+              title: Text(
+                'Tentang Aplikasi',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              subtitle: Text(
+                'Versi 1.0.0',
+                style: TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+              ),
             ),
           ),
         ],
@@ -1161,7 +1565,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
-    
+
 class SholawatMaulidPage extends StatelessWidget {
   final double skalaFont;
   final bool tampilkanTerjemahan;
@@ -1177,18 +1581,24 @@ class SholawatMaulidPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sections = [
-      ('Sholawat', const [
-        'Sholawat Ibrahimiyah',
-        'Sholawat Jibril',
-        'Sholawat Nariyah',
-        'Sholawat Munjiyat',
-      ]),
-      ('Maulid & Qashidah', const [
-        'Maulid Simtutdurar (pembuka)',
-        'Qashidah Burdah (Bab 1)',
-        'Qashidah Ya Imamarusli',
-        'Qashidah Busro Lana',
-      ]),
+      (
+        'Sholawat',
+        const [
+          'Sholawat Ibrahimiyah',
+          'Sholawat Jibril',
+          'Sholawat Nariyah',
+          'Sholawat Munjiyat',
+        ],
+      ),
+      (
+        'Maulid & Qashidah',
+        const [
+          'Maulid Simtutdurar (pembuka)',
+          'Qashidah Burdah (Bab 1)',
+          'Qashidah Ya Imamarusli',
+          'Qashidah Busro Lana',
+        ],
+      ),
     ];
 
     return Scaffold(
@@ -1201,7 +1611,11 @@ class SholawatMaulidPage extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8, top: 4),
             child: Text(
               section.$1,
-              style: const TextStyle(color: NurKitabColors.gold, fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(
+                color: NurKitabColors.gold,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
           );
           for (final item in section.$2) {
@@ -1209,8 +1623,17 @@ class SholawatMaulidPage extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               decoration: nurKitabCardDecoration(radius: 12),
               child: ListTile(
-                title: Text(item, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-                trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold),
+                title: Text(
+                  item,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: NurKitabColors.gold,
+                ),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -1264,9 +1687,22 @@ class YasinTahlilPage extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             decoration: nurKitabCardDecoration(radius: 12),
             child: ListTile(
-              leading: nurKitabAsset(NurKitabAssets.iconYasin, width: 40, height: 40),
-              title: Text(judul, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold),
+              leading: nurKitabAsset(
+                NurKitabAssets.iconYasin,
+                width: 40,
+                height: 40,
+              ),
+              title: Text(
+                judul,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: NurKitabColors.gold,
+              ),
               onTap: () {
                 if (judul == 'Surah Yasin') {
                   Navigator.push(
@@ -1330,7 +1766,9 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
 
   Future<void> _ambilDataAlquran() async {
     try {
-      final respon = await http.get(Uri.parse('https://equran.id/api/v2/surat'));
+      final respon = await http.get(
+        Uri.parse('https://equran.id/api/v2/surat'),
+      );
       if (respon.statusCode == 200) {
         setState(() {
           _daftarSurah = json.decode(respon.body)['data'];
@@ -1348,7 +1786,9 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
       backgroundColor: NurKitabColors.deepGreen,
       appBar: nurKitabAppBar('Al-Qur\'an'),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: NurKitabColors.gold))
+          ? const Center(
+              child: CircularProgressIndicator(color: NurKitabColors.gold),
+            )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: _daftarSurah.length,
@@ -1364,37 +1804,56 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          nurKitabAsset(NurKitabAssets.iconQuran, width: 44, height: 44),
+                          nurKitabAsset(
+                            NurKitabAssets.iconQuran,
+                            width: 44,
+                            height: 44,
+                          ),
                           Text(
                             "${surah['nomor']}",
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
-                              shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                              shadows: [
+                                Shadow(color: Colors.black, blurRadius: 4),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    title: Text(surah['namaLatin'], style: const TextStyle(color: Colors.white)),
+                    title: Text(
+                      surah['namaLatin'],
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     subtitle: Text(
                       "${surah['tempatTurun'].toString().toUpperCase()} • ${surah['jumlahAyat']} Ayat",
-                      style: const TextStyle(color: NurKitabColors.textMuted, fontSize: 12),
+                      style: const TextStyle(
+                        color: NurKitabColors.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                     trailing: Text(
                       surah['nama'],
-                      style: const TextStyle(color: NurKitabColors.gold, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: NurKitabColors.gold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => HalamanMubarakQuran(
-                          nomorSurah: surah['nomor'],
-                          judulSurah: surah['namaLatin'],
-                          skalaFont: widget.skalaFont,
-                          isDarkMode: widget.isDarkMode,
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HalamanMubarakQuran(
+                            nomorSurah: surah['nomor'],
+                            judulSurah: surah['namaLatin'],
+                            skalaFont: widget.skalaFont,
+                            isDarkMode: widget.isDarkMode,
+                          ),
                         ),
-                      ));
+                      );
                     },
                   ),
                 );
@@ -1435,18 +1894,35 @@ class SholawatPage extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             decoration: nurKitabCardDecoration(radius: 12),
             child: ListTile(
-              leading: nurKitabAsset(NurKitabAssets.iconSholawat, width: 40, height: 40),
-              title: Text(sholawat[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              leading: nurKitabAsset(
+                NurKitabAssets.iconSholawat,
+                width: 40,
+                height: 40,
+              ),
+              title: Text(
+                sholawat[index],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: NurKitabColors.gold,
+                size: 20,
+              ),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => IsiBacaanPage(
-                    judul: sholawat[index],
-                    skalaFont: skalaFont,
-                    tampilkanTerjemahan: tampilkanTerjemahan,
-                    isDarkMode: isDarkMode,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IsiBacaanPage(
+                      judul: sholawat[index],
+                      skalaFont: skalaFont,
+                      tampilkanTerjemahan: tampilkanTerjemahan,
+                      isDarkMode: isDarkMode,
+                    ),
                   ),
-                ));
+                );
               },
             ),
           );
@@ -1487,18 +1963,35 @@ class MaulidPage extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             decoration: nurKitabCardDecoration(radius: 12),
             child: ListTile(
-              leading: nurKitabAsset(NurKitabAssets.iconSholawat, width: 40, height: 40),
-              title: Text(maulid[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              leading: nurKitabAsset(
+                NurKitabAssets.iconSholawat,
+                width: 40,
+                height: 40,
+              ),
+              title: Text(
+                maulid[index],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: NurKitabColors.gold,
+                size: 20,
+              ),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => IsiBacaanPage(
-                    judul: maulid[index],
-                    skalaFont: skalaFont,
-                    tampilkanTerjemahan: tampilkanTerjemahan,
-                    isDarkMode: isDarkMode,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IsiBacaanPage(
+                      judul: maulid[index],
+                      skalaFont: skalaFont,
+                      tampilkanTerjemahan: tampilkanTerjemahan,
+                      isDarkMode: isDarkMode,
+                    ),
                   ),
-                ));
+                );
               },
             ),
           );
@@ -1539,18 +2032,35 @@ class HizibPage extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             decoration: nurKitabCardDecoration(radius: 12),
             child: ListTile(
-              leading: nurKitabAsset(NurKitabAssets.iconHizib, width: 40, height: 40),
-              title: Text(hizib[index], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.chevron_right, color: NurKitabColors.gold, size: 20),
+              leading: nurKitabAsset(
+                NurKitabAssets.iconHizib,
+                width: 40,
+                height: 40,
+              ),
+              title: Text(
+                hizib[index],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: NurKitabColors.gold,
+                size: 20,
+              ),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => IsiBacaanPage(
-                    judul: hizib[index],
-                    skalaFont: skalaFont,
-                    tampilkanTerjemahan: tampilkanTerjemahan,
-                    isDarkMode: isDarkMode,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IsiBacaanPage(
+                      judul: hizib[index],
+                      skalaFont: skalaFont,
+                      tampilkanTerjemahan: tampilkanTerjemahan,
+                      isDarkMode: isDarkMode,
+                    ),
                   ),
-                ));
+                );
               },
             ),
           );
@@ -1559,7 +2069,7 @@ class HizibPage extends StatelessWidget {
     );
   }
 }
-  
+
 class IsiBacaanPage extends StatelessWidget {
   final String judul;
   final double skalaFont;
@@ -1567,7 +2077,7 @@ class IsiBacaanPage extends StatelessWidget {
   final bool isDarkMode; // <-- BERHASIL DITAMBAHKAN DI SINI
 
   const IsiBacaanPage({
-    super.key, 
+    super.key,
     required this.judul,
     required this.skalaFont,
     required this.tampilkanTerjemahan,
@@ -1580,64 +2090,76 @@ class IsiBacaanPage extends StatelessWidget {
     String artiTeks = "";
 
     if (judul == "Sholawat Ibrahimiyah") {
-      teksArab = "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
-      artiTeks = "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
-    }
-    else if (judul == "Sholawat Jibril") {
+      teksArab =
+          "اَللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ  مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ وَبَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ";
+      artiTeks =
+          "Ya Allah, limpahkanlah rahmat kepada Nabi Muhammad dan kepada keluarga Nabi Muhammad, sebagaimana Engkau telah melimpahkan rahmat kepada Nabi Ibrahim dan kepada keluarga Nabi Ibrahim. Dan berkahilah Nabi Muhammad dan keluarga Nabi Muhammad, sebagaimana Engkau telah memberkahi Nabi Ibrahim dan keluarga Nabi Ibrahim. Sesungguhnya di seluruh alam semesta ini, Engkau Maha Terpuji lagi Maha Mulia.";
+    } else if (judul == "Sholawat Jibril") {
       teksArab = "صَلَّى اللهُ عَلَى مُحَمَّدٍ";
-      artiTeks = "Semoga Allah memberikan rahmat-Nya kepada Nabi Muhammad. \n(Sholawat singkat penarik rezeki.)";
-    }
-    else if (judul == "Sholawat Nariyah") {
-      teksArab = "اَللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ";
-      artiTeks = "Ya Allah, limpahkanlah shalawat yang sempurna dan kesejahteraan yang paripurna kepada junjungan kami Nabi Muhammad, yang dengan perantaraannya semua ikatan terlepas, segala kesusahan dihilangkan, segala kebutuhan dipenuhi, segala keinginan dan akhir yang baik tercapai, dan hujan diturunkan berkat wajahnya yang mulia. Begitu pula kepada keluarga dan para sahabatnya pada setiap kedipan mata and hembusan nafas, sebanyak jumlah semua yang Engkau ketahui.";
-    }
-    else if (judul == "Sholawat Munjiyat") {
-      teksArab = "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
-      artiTeks = "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
-    }
-    else if (judul == "Maulid Simtutdurar (pembuka)") {
-      teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
-      artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
-    }
-    else if (judul == "Qashidah Burdah (Bab 1)") {
-      teksArab = "أَمِنْ تَذَكُّـرِ جِيْـرَانٍ بِـذِيْ سَلَمِ ❁ مَزَجْتَ دَمْعاً جَرَى مِنْ مُقْلَةٍ بِدَمِ \n\nأَمْ هَبَّتِ الرِّيْحُ مِنْ تِلْقَاءِ كَاظِمَةٍ ❁ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ";
-      artiTeks = "1. Apakah karena teringat tetangga yang tinggal di Dzi Salam, engkau mengucurkan air mata bercampur darah yang mengalir dari matamu? \n\n2. Ataukah karena angin berembus dari arah Kazhimah, dan kilat berkilauan di dalam kegelapan malam dari gunung Idham?.";
-    }
-    else if (judul == "Qashidah Ya Imamarusli") {
-      teksArab ="يَا إِمَامَ الرُّسْلِ يَا سَنَدِيْ ❁ أَنْتَ بَابُ اللهِ مُعْتَمَدِيْ\n"
-                "فَبِدُنْيَايَ وَآخِرَتِيْ ❁ يَا رَسُوْلَ اللهِ خُذْ بِيَدِيْ (١)\n\n"
-                "قَسَمًا بِالنَّجْمِ حِيْنَ هَوَى ❁ مَا الْمُعَافَى وَالسَّقِيْمُ سَوَى\n"
-                "فَاخْلَعِ الْكَوْنَيْنِ عَنْكَ سِوَى ❁ حُبِّ مَوْلَى الْعُرْبِ وَالْعَجَمِ (٢)\n\n"
-                "وَأَزِ حْ مَا اسْتَطَعْتَ مِنْ عِلَلٍ ❁ عَنْ كَلَامٍ فِيْكَ ذِيْ زَلَلٍ\n"
-                "وَانْتَبِهْ مِنْ رَقْدَةِ الْغَفَلِ ❁ وَاحْتَمِ فِيْ جَاهِ ذِيْ الْعِصَمِ (٣)";
-      artiTeks = "1. Wahai pemimpin para Rasul, wahai sandaranku! Engkaulah pintu Allah tumpuanku. Maka di dunia dan akhiratku, wahai Rasulullah, peganglah tanganku (bimbinglah aku).\n\n2. Aku bersumpah demi bintang ketika terbenam, tidaklah sama orang yang sehat dengan orang yang sakit. Maka lepaskanlah keterikatan dua alam darimu, kecuali cinta kepada pemimpin bangsa Arab dan ajam (Nabi Muhammad).\n\n3. Dan hilangkanlah sejauh kemampuanmu dari segala cacat, dari perkataan yang menggelincirkanmu. Dan bangunlah dari tidur kelalaian, serta berlindunglah di bawah kemuliaan Nabi yang terjaga dari dosa.";
-    }
-    else if (judul == "Qashidah Busro Lana") {
-      teksArab ="بُشْرَى لَنَا نِلْنَا الْمُنَى ❁ زَالَ الْعَنَا وَافَى الصَّفَا\n"
-                "وَالدَّهْرُ أَنْجَزَ وَعْدَهُ ❁ وَالْبِشْرُ أَضْحَى مُعْلَنَا (١)\n\n"
-                "يَا نَفْسُ طِيْبِيْ بِاللِّقَا ❁ يَا عَيْنُ قَرِّيْ أَعْيُنَا\n"
-                "هٰذَا جَمَالُ الْمُصْطَفَى ❁ أَنْوَارُهُ لَاحَتْ لَنَا (٢)\n\n"
-                "يَا طَيْبَةُ مَاذَا نَقُوْلْ ❁ وَفِيْكِ قَدْ حَلَّ الرَّسُوْلْ\n"
-                "وَكُلُّنَا نَرْجُوْ الْوُصُوْلْ ❁ لِمُحَمَّدٍ نَبِيِّنَا (٣)\n\n"
-                "صَلَّى عَلَيْهِ اللهُ بَارْ ❁ كُلَّ الْعَشَايَا وَالْأَبْكَارْ\n"
-                "وَآلِهِ الْأَطْهَارِ الْأَخْيَارْ ❁ أَصْحَابِهِ أَهْلِ الْهُدَى (٤)";
-      artiTeks = "1. Kabar gembira bagi kami karena kami telah mencapai cita-cita. Segala kesulitan telah sirna dan kesucian telah datang. Waktu telah menepati janjinya, dan kegembiraan kini telah nyata diumumkan.\n\n2. Wahai jiwa, bahagia lah dengan pertemuan ini! Wahai mata, sejukkanlah pandangan kami! Ini adalah keindahan Al-Musthafa (Nabi pilihan), cahaya-cahayanya telah tampak terang bagi kami.\n\n3. Wahai kota Thaybah (Madinah), apa yang bisa kami katakan? Sedangkan di dalam dirimu telah tinggal sang Rasul. Dan kami semua berharap untuk bisa sampai kepada Muhammad, Nabi kami.\n\n4. Semoga Allah Sang Pencipta melimpahkan sholawat kepadanya setiap malam dan pagi hari, juga kepada keluarganya yang suci lagi mulia, serta para sahabatnya yang merupakan ahli petunjuk.";
-    }
-    else if (judul == "Ratib Al-Haddad (Awal)") {
-      teksArab = "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ يُحْيِي وَيُمِيتُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ (٣×)";
-      artiTeks = "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dia yang menghidupkan dan yang mematikan, dan Dia Maha Kuasa atas segala sesuatu. (Dibaca 3x).";
-    }
-    else if (judul == "Ratib Al-Atthas (Awal)") {
-      teksArab = "أَعُوذُ بِاللَّهِ السَّمِيعِ الْعَلِيمِ مِنَ الشَّيْطَانِ الرَّجِيمِ (٣×) سْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ (٣×)";
-      artiTeks = "Aku berlindung kepada Allah Yang Maha Mendengar lagi Maha Mengetahui dari godaan setan yang terkutuk (3x). \n\nDengan nama Allah yang bila disebut, segala sesuatu di bumi dan di langit tidak akan berbahaya, dan Dia Maha Mendengar lagi Maha Mengetahui (3x).";
-    }
-    else if (judul == "Hizib Nashor (Pembuka)") {
-      teksArab = "اَللَّهُمَّ بِسَطْوَةِ جَبَرُوْتِ قَهْرِكَ، وَبِسُرْعَةِ إِغَاثَةِ نَصْرِكَ، وَبِغَيْرَتِكَ لِاِنْتِهَاكِ حُرُمَاتِكَ، وَبِحِمَايَتِكَ لِمَنِ احْتَمَى بِآيَاتِكَ";
-      artiTeks = "Ya Allah, dengan kekuatan kekuasaan penaklukan-Mu, dengan kecepatan bantuan pertolongan-Mu, dengan pembelaan-Mu terhadap pelanggaran kehormatan-Mu, dan dengan perlindungan-Mu bagi siapa yang berlindung dengan ayat-ayat-Mu (kami memohon pertolongan-Mu).";
-    }
-    else if (judul == "Hizib Bahar (Pembuka)") {
-      teksArab = "يَا عَلِيُّ يَا عَظِيْمُ يَا حَلِيْمُ يَا عَلِيْمُ أَنْتَ رَبِّيْ وَعِلْمُكَ حَسْبِيْ فَنِعْمَ الرَّبُّ رَبِّيْ وَنِعْمَ الْحَسْبُ حَسْبِيْ";
-      artiTeks = "Wahai Yang Maha Tinggi, Wahai Yang Maha Agung, Wahai Yang Maha Penyantun, Wahai Yang Maha Mengetahui. Engkau adalah Tuhanku, dan ilmu-Mu adalah kecukupanku. Maka sebaik-baik Tuhan adalah Tuhanku, dan sebaik-baik kecukupan adalah kecukupanku.";
+      artiTeks =
+          "Semoga Allah memberikan rahmat-Nya kepada Nabi Muhammad. \n(Sholawat singkat penarik rezeki.)";
+    } else if (judul == "Sholawat Nariyah") {
+      teksArab =
+          "اَللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ";
+      artiTeks =
+          "Ya Allah, limpahkanlah shalawat yang sempurna dan kesejahteraan yang paripurna kepada junjungan kami Nabi Muhammad, yang dengan perantaraannya semua ikatan terlepas, segala kesusahan dihilangkan, segala kebutuhan dipenuhi, segala keinginan dan akhir yang baik tercapai, dan hujan diturunkan berkat wajahnya yang mulia. Begitu pula kepada keluarga dan para sahabatnya pada setiap kedipan mata and hembusan nafas, sebanyak jumlah semua yang Engkau ketahui.";
+    } else if (judul == "Sholawat Munjiyat") {
+      teksArab =
+          "اَللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلَاةً تُنْجِينَا بِهَا مِنْ جَمِيعِ الْأَهْوَالِ وَالْآفَاتِ وَتَقْضِي لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيعِ السَّيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَا أَقْصَى الْغَايَاتِ مِنْ جَمِيعِ الْخَيْرَاتِ فِي الْحَيَاةِ وَبَعْدَ الْمَمَاتِ";
+      artiTeks =
+          "Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau akan menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua malapetaka, Engkau akan memenuhi semua kebutuhan kami, Engkau akan membersihkan kami dari semua keburukan, Engkau akan mengangkat kami ke derajat tertinggi di sisi-Mu, dan Engkau akan menyampaikan kami kepada tujuan yang paling sempurna dari semua kebaikan, baik semasa hidup maupun setelah mati.";
+    } else if (judul == "Maulid Simtutdurar (pembuka)") {
+      teksArab =
+          "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. اَلْحَمْدُ لِلّٰهِ الْقَوِيِّ سُلْطَانُهْ، الْوَاضِحِ بُرْهَانُهْ، الْمَبْسُوْطِ فِي الْوُجُوْدِ كَرَمُهُ وَإِحْسَانُهْ";
+      artiTeks =
+          "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah Yang Maha Kuat kekuasaan-Nya, Maha Jelas bukti-bukti-Nya, dan Maha Luas kedermawanan serta kebaikan-Nya di alam semesta ini.";
+    } else if (judul == "Qashidah Burdah (Bab 1)") {
+      teksArab =
+          "أَمِنْ تَذَكُّـرِ جِيْـرَانٍ بِـذِيْ سَلَمِ ❁ مَزَجْتَ دَمْعاً جَرَى مِنْ مُقْلَةٍ بِدَمِ \n\nأَمْ هَبَّتِ الرِّيْحُ مِنْ تِلْقَاءِ كَاظِمَةٍ ❁ وَأَوْمَضَ الْبَرْقُ فِي الظَّلْمَاءِ مِنْ إِضَمِ";
+      artiTeks =
+          "1. Apakah karena teringat tetangga yang tinggal di Dzi Salam, engkau mengucurkan air mata bercampur darah yang mengalir dari matamu? \n\n2. Ataukah karena angin berembus dari arah Kazhimah, dan kilat berkilauan di dalam kegelapan malam dari gunung Idham?.";
+    } else if (judul == "Qashidah Ya Imamarusli") {
+      teksArab =
+          "يَا إِمَامَ الرُّسْلِ يَا سَنَدِيْ ❁ أَنْتَ بَابُ اللهِ مُعْتَمَدِيْ\n"
+          "فَبِدُنْيَايَ وَآخِرَتِيْ ❁ يَا رَسُوْلَ اللهِ خُذْ بِيَدِيْ (١)\n\n"
+          "قَسَمًا بِالنَّجْمِ حِيْنَ هَوَى ❁ مَا الْمُعَافَى وَالسَّقِيْمُ سَوَى\n"
+          "فَاخْلَعِ الْكَوْنَيْنِ عَنْكَ سِوَى ❁ حُبِّ مَوْلَى الْعُرْبِ وَالْعَجَمِ (٢)\n\n"
+          "وَأَزِ حْ مَا اسْتَطَعْتَ مِنْ عِلَلٍ ❁ عَنْ كَلَامٍ فِيْكَ ذِيْ زَلَلٍ\n"
+          "وَانْتَبِهْ مِنْ رَقْدَةِ الْغَفَلِ ❁ وَاحْتَمِ فِيْ جَاهِ ذِيْ الْعِصَمِ (٣)";
+      artiTeks =
+          "1. Wahai pemimpin para Rasul, wahai sandaranku! Engkaulah pintu Allah tumpuanku. Maka di dunia dan akhiratku, wahai Rasulullah, peganglah tanganku (bimbinglah aku).\n\n2. Aku bersumpah demi bintang ketika terbenam, tidaklah sama orang yang sehat dengan orang yang sakit. Maka lepaskanlah keterikatan dua alam darimu, kecuali cinta kepada pemimpin bangsa Arab dan ajam (Nabi Muhammad).\n\n3. Dan hilangkanlah sejauh kemampuanmu dari segala cacat, dari perkataan yang menggelincirkanmu. Dan bangunlah dari tidur kelalaian, serta berlindunglah di bawah kemuliaan Nabi yang terjaga dari dosa.";
+    } else if (judul == "Qashidah Busro Lana") {
+      teksArab =
+          "بُشْرَى لَنَا نِلْنَا الْمُنَى ❁ زَالَ الْعَنَا وَافَى الصَّفَا\n"
+          "وَالدَّهْرُ أَنْجَزَ وَعْدَهُ ❁ وَالْبِشْرُ أَضْحَى مُعْلَنَا (١)\n\n"
+          "يَا نَفْسُ طِيْبِيْ بِاللِّقَا ❁ يَا عَيْنُ قَرِّيْ أَعْيُنَا\n"
+          "هٰذَا جَمَالُ الْمُصْطَفَى ❁ أَنْوَارُهُ لَاحَتْ لَنَا (٢)\n\n"
+          "يَا طَيْبَةُ مَاذَا نَقُوْلْ ❁ وَفِيْكِ قَدْ حَلَّ الرَّسُوْلْ\n"
+          "وَكُلُّنَا نَرْجُوْ الْوُصُوْلْ ❁ لِمُحَمَّدٍ نَبِيِّنَا (٣)\n\n"
+          "صَلَّى عَلَيْهِ اللهُ بَارْ ❁ كُلَّ الْعَشَايَا وَالْأَبْكَارْ\n"
+          "وَآلِهِ الْأَطْهَارِ الْأَخْيَارْ ❁ أَصْحَابِهِ أَهْلِ الْهُدَى (٤)";
+      artiTeks =
+          "1. Kabar gembira bagi kami karena kami telah mencapai cita-cita. Segala kesulitan telah sirna dan kesucian telah datang. Waktu telah menepati janjinya, dan kegembiraan kini telah nyata diumumkan.\n\n2. Wahai jiwa, bahagia lah dengan pertemuan ini! Wahai mata, sejukkanlah pandangan kami! Ini adalah keindahan Al-Musthafa (Nabi pilihan), cahaya-cahayanya telah tampak terang bagi kami.\n\n3. Wahai kota Thaybah (Madinah), apa yang bisa kami katakan? Sedangkan di dalam dirimu telah tinggal sang Rasul. Dan kami semua berharap untuk bisa sampai kepada Muhammad, Nabi kami.\n\n4. Semoga Allah Sang Pencipta melimpahkan sholawat kepadanya setiap malam dan pagi hari, juga kepada keluarganya yang suci lagi mulia, serta para sahabatnya yang merupakan ahli petunjuk.";
+    } else if (judul == "Ratib Al-Haddad (Awal)") {
+      teksArab =
+          "بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ. لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ يُحْيِي وَيُمِيتُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ (٣×)";
+      artiTeks =
+          "Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Tidak ada tuhan yang berhak disembah kecuali Allah semata, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan bagi-Nya segala puji. Dia yang menghidupkan dan yang mematikan, dan Dia Maha Kuasa atas segala sesuatu. (Dibaca 3x).";
+    } else if (judul == "Ratib Al-Atthas (Awal)") {
+      teksArab =
+          "أَعُوذُ بِاللَّهِ السَّمِيعِ الْعَلِيمِ مِنَ الشَّيْطَانِ الرَّجِيمِ (٣×) سْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ (٣×)";
+      artiTeks =
+          "Aku berlindung kepada Allah Yang Maha Mendengar lagi Maha Mengetahui dari godaan setan yang terkutuk (3x). \n\nDengan nama Allah yang bila disebut, segala sesuatu di bumi dan di langit tidak akan berbahaya, dan Dia Maha Mendengar lagi Maha Mengetahui (3x).";
+    } else if (judul == "Hizib Nashor (Pembuka)") {
+      teksArab =
+          "اَللَّهُمَّ بِسَطْوَةِ جَبَرُوْتِ قَهْرِكَ، وَبِسُرْعَةِ إِغَاثَةِ نَصْرِكَ، وَبِغَيْرَتِكَ لِاِنْتِهَاكِ حُرُمَاتِكَ، وَبِحِمَايَتِكَ لِمَنِ احْتَمَى بِآيَاتِكَ";
+      artiTeks =
+          "Ya Allah, dengan kekuatan kekuasaan penaklukan-Mu, dengan kecepatan bantuan pertolongan-Mu, dengan pembelaan-Mu terhadap pelanggaran kehormatan-Mu, dan dengan perlindungan-Mu bagi siapa yang berlindung dengan ayat-ayat-Mu (kami memohon pertolongan-Mu).";
+    } else if (judul == "Hizib Bahar (Pembuka)") {
+      teksArab =
+          "يَا عَلِيُّ يَا عَظِيْمُ يَا حَلِيْمُ يَا عَلِيْمُ أَنْتَ رَبِّيْ وَعِلْمُكَ حَسْبِيْ فَنِعْمَ الرَّبُّ رَبِّيْ وَنِعْمَ الْحَسْبُ حَسْبِيْ";
+      artiTeks =
+          "Wahai Yang Maha Tinggi, Wahai Yang Maha Agung, Wahai Yang Maha Penyantun, Wahai Yang Maha Mengetahui. Engkau adalah Tuhanku, dan ilmu-Mu adalah kecukupanku. Maka sebaik-baik Tuhan adalah Tuhanku, dan sebaik-baik kecukupan adalah kecukupanku.";
     }
 
     return Scaffold(
@@ -1663,7 +2185,10 @@ class IsiBacaanPage extends StatelessWidget {
                 textAlign: TextAlign.right,
               ),
               if (tampilkanTerjemahan) ...[
-                Divider(color: NurKitabColors.gold.withValues(alpha: 0.4), height: 30),
+                Divider(
+                  color: NurKitabColors.gold.withValues(alpha: 0.4),
+                  height: 30,
+                ),
                 Text(
                   artiTeks,
                   style: TextStyle(
@@ -1686,7 +2211,7 @@ class HalamanMubarakQuran extends StatefulWidget {
   final int nomorSurah;
   final String judulSurah;
   final double skalaFont;
-  final bool isDarkMode; // Meneruskan data warna ke detail Quran
+  final bool isDarkMode;
 
   const HalamanMubarakQuran({
     super.key,
@@ -1708,11 +2233,24 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
   void initState() {
     super.initState();
     _ambilDetailSurah();
+    _simpanBacaanTerakhir();
+  }
+
+  Future<void> _simpanBacaanTerakhir() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('last_surah_nomor', widget.nomorSurah);
+      await prefs.setString('last_surah_nama', widget.judulSurah);
+    } catch (e) {
+      // Menghindari crash jika storage bermasalah
+    }
   }
 
   Future<void> _ambilDetailSurah() async {
     try {
-      final respon = await http.get(Uri.parse('https://equran.id/api/v2/surat/${widget.nomorSurah}'));
+      final respon = await http.get(
+        Uri.parse('https://equran.id/api/v2/surat/${widget.nomorSurah}'),
+      );
       if (respon.statusCode == 200) {
         setState(() {
           _detailSurah = json.decode(respon.body)['data'];
@@ -1724,11 +2262,25 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
     }
   }
 
+  // 🟢 Fungsi pembantu untuk mengubah angka biasa (1,2,3) menjadi angka Arab (١,٢,٣)
+  String _konversiKeAngkaArab(String nomor) {
+    const angkaBiasa = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const angkaArab = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+    String hasil = nomor;
+    for (int i = 0; i < angkaBiasa.length; i++) {
+      hasil = hasil.replaceAll(angkaBiasa[i], angkaArab[i]);
+    }
+    return hasil;
+  }
+
   String _ambilGabunganAyat() {
     if (_detailSurah == null || _detailSurah!['ayat'] == null) return "";
     String totalTeks = "";
     for (var ayat in _detailSurah!['ayat']) {
-      totalTeks += "${ayat['teksArab']} ﴿${ayat['nomorAyat']}﴾ ";
+      // 🟢 Ubah nomor ayat menjadi angka Arab sebelum digabungkan ke dalam teks
+      String nomorArab = _konversiKeAngkaArab(ayat['nomorAyat'].toString());
+      totalTeks += "${ayat['teksArab']} ﴿$nomorArab﴾ ";
     }
     return totalTeks;
   }
@@ -1737,9 +2289,15 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: NurKitabColors.deepGreen,
-      appBar: nurKitabAppBar(_detailSurah != null ? "${_detailSurah!['namaLatin']}" : widget.judulSurah),
+      appBar: nurKitabAppBar(
+        _detailSurah != null
+            ? "${_detailSurah!['namaLatin']}"
+            : widget.judulSurah,
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: NurKitabColors.gold))
+          ? const Center(
+              child: CircularProgressIndicator(color: NurKitabColors.gold),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: Text(
@@ -1754,6 +2312,488 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+class IslamicCalendarPage extends StatefulWidget {
+  final String namaLokasi;
+
+  const IslamicCalendarPage({super.key, required this.namaLokasi});
+
+  @override
+  State<IslamicCalendarPage> createState() => _IslamicCalendarPageState();
+}
+
+class _IslamicCalendarPageState extends State<IslamicCalendarPage> {
+  int _currentMonth = DateTime.now().month;
+  int _currentYear = DateTime.now().year;
+  List<dynamic> _calendarDays = [];
+  Map<String, String> _monthlyHolidays = {};
+  bool _isLoading = true;
+  String _errorMsg = "";
+
+  final List<String> _namaBulanMasehi = [
+    "",
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCalendar();
+  }
+
+  String? _terjemahkanLiburIslam(String engName) {
+    String lower = engName.toLowerCase();
+    if (lower.contains("eid al-fitr")) return "Hari Raya Idul Fitri";
+    if (lower.contains("eid al-adha")) return "Hari Raya Idul Adha";
+    if (lower.contains("islamic new year")) return "Tahun Baru Islam";
+    if (lower.contains("1st of ramadan")) return "Awal Ramadhan";
+    if (lower.contains("ashura")) return "Hari Asyura";
+    if (lower.contains("arafa")) return "Hari Arafah";
+    if (lower.contains("isra") && lower.contains("mi'raj"))
+      return "Isra Mi'raj Nabi Muhammad SAW";
+    if (lower.contains("mawlid") || lower.contains("maulid"))
+      return "Maulid Nabi Muhammad SAW";
+    return null;
+  }
+
+  Future<void> _fetchCalendar() async {
+    setState(() {
+      _isLoading = true;
+      _errorMsg = "";
+      _monthlyHolidays.clear();
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      double lat = prefs.getDouble('jadwal_lat') ?? -7.1561;
+      double lng = prefs.getDouble('jadwal_lng') ?? 113.4812;
+
+      final url =
+          'https://api.aladhan.com/v1/calendar/$_currentYear/$_currentMonth?latitude=$lat&longitude=$lng&method=20';
+      final respon = await http.get(Uri.parse(url));
+
+      if (respon.statusCode == 200) {
+        final data = json.decode(respon.body)['data'];
+
+        Map<String, String> holidays = {};
+        try {
+          final urlHolidays =
+              'https://date.nager.at/api/v3/PublicHolidays/$_currentYear/ID';
+          final responHolidays = await http.get(Uri.parse(urlHolidays));
+          if (responHolidays.statusCode == 200) {
+            final dataHolidays = json.decode(responHolidays.body) as List;
+            for (var h in dataHolidays) {
+              final dateStr = h['date'];
+              if (dateStr.startsWith(
+                "$_currentYear-${_currentMonth.toString().padLeft(2, '0')}",
+              )) {
+                holidays[dateStr] = h['localName'] ?? h['name'];
+              }
+            }
+          }
+        } catch (_) {}
+
+        for (var day in data) {
+          final gregorian = day['date']['gregorian'];
+          final int tgl = int.parse(gregorian['day'].toString());
+          final dateStr =
+              "$_currentYear-${_currentMonth.toString().padLeft(2, '0')}-${tgl.toString().padLeft(2, '0')}";
+
+          List<dynamic> hijriHolidays = day['date']['hijri']['holidays'] ?? [];
+          if (hijriHolidays.isNotEmpty) {
+            final translated = hijriHolidays
+                .map((h) => _terjemahkanLiburIslam(h.toString()))
+                .where((h) => h != null)
+                .toList();
+            if (translated.isNotEmpty) {
+              final joined = translated.join(", ");
+              if (holidays.containsKey(dateStr)) {
+                holidays[dateStr] = "${holidays[dateStr]} & $joined";
+              } else {
+                holidays[dateStr] = joined;
+              }
+            }
+          }
+        }
+
+        setState(() {
+          _calendarDays = data;
+          _monthlyHolidays = holidays;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception("Gagal memuat kalender: ${respon.statusCode}");
+      }
+    } catch (e) {
+      setState(() {
+        _errorMsg =
+            "Gagal mengambil data kalender bulanan.\nDetail: ${e.toString()}";
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _nextMonth() {
+    if (_currentMonth == 12) {
+      _currentMonth = 1;
+      _currentYear++;
+    } else {
+      _currentMonth++;
+    }
+    _fetchCalendar();
+  }
+
+  void _prevMonth() {
+    if (_currentMonth == 1) {
+      _currentMonth = 12;
+      _currentYear--;
+    } else {
+      _currentMonth--;
+    }
+    _fetchCalendar();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: AppBar(
+        title: const Text(
+          "Kalender Real-Time",
+          style: TextStyle(
+            color: NurKitabColors.gold,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: NurKitabColors.deepGreen,
+        foregroundColor: NurKitabColors.gold,
+        iconTheme: const IconThemeData(color: NurKitabColors.gold),
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: NurKitabColors.cardGreenLight,
+              border: Border(
+                bottom: BorderSide(
+                  color: NurKitabColors.gold.withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: NurKitabColors.gold,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      widget.namaLokasi,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: _prevMonth,
+                      icon: const Icon(
+                        Icons.chevron_left,
+                        color: NurKitabColors.gold,
+                      ),
+                    ),
+                    Text(
+                      "${_namaBulanMasehi[_currentMonth]} $_currentYear",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _nextMonth,
+                      icon: const Icon(
+                        Icons.chevron_right,
+                        color: NurKitabColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: NurKitabColors.gold,
+                    ),
+                  )
+                : _errorMsg.isNotEmpty
+                ? Center(
+                    child: Text(
+                      _errorMsg,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  )
+                : Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children:
+                              ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
+                                  .map(
+                                    (day) => Expanded(
+                                      child: Center(
+                                        child: Text(
+                                          day,
+                                          style: const TextStyle(
+                                            color: NurKitabColors.gold,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                      Expanded(
+                        child: Builder(
+                          builder: (context) {
+                            int offset = 0;
+                            if (_calendarDays.isNotEmpty) {
+                              final firstDayStr =
+                                  _calendarDays[0]['date']['gregorian']['weekday']['en'];
+                              switch (firstDayStr) {
+                                case 'Monday':
+                                  offset = 0;
+                                  break;
+                                case 'Tuesday':
+                                  offset = 1;
+                                  break;
+                                case 'Wednesday':
+                                  offset = 2;
+                                  break;
+                                case 'Thursday':
+                                  offset = 3;
+                                  break;
+                                case 'Friday':
+                                  offset = 4;
+                                  break;
+                                case 'Saturday':
+                                  offset = 5;
+                                  break;
+                                case 'Sunday':
+                                  offset = 6;
+                                  break;
+                              }
+                            }
+
+                            return GridView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7,
+                                    childAspectRatio: 0.85,
+                                    crossAxisSpacing: 6,
+                                    mainAxisSpacing: 6,
+                                  ),
+                              itemCount: _calendarDays.length + offset,
+                              itemBuilder: (context, index) {
+                                if (index < offset) {
+                                  return const SizedBox();
+                                }
+
+                                final dayIndex = index - offset;
+                                final dayData = _calendarDays[dayIndex];
+                                final gregorian = dayData['date']['gregorian'];
+                                final hijri = dayData['date']['hijri'];
+
+                                final tglMasehi = int.parse(gregorian['day']);
+                                final blnMasehi = gregorian['month']['number'];
+                                final thnMasehi = int.parse(gregorian['year']);
+
+                                final isToday =
+                                    (tglMasehi == DateTime.now().day &&
+                                    blnMasehi == DateTime.now().month &&
+                                    thnMasehi == DateTime.now().year);
+
+                                final dateStr =
+                                    "$thnMasehi-${blnMasehi.toString().padLeft(2, '0')}-${tglMasehi.toString().padLeft(2, '0')}";
+                                final isHoliday = _monthlyHolidays.containsKey(
+                                  dateStr,
+                                );
+                                final isFriday = (index % 7 == 4);
+                                final isSunday = (index % 7 == 6);
+
+                                Color masehiColor = Colors.white;
+                                if (isHoliday || isSunday) {
+                                  masehiColor = Colors.redAccent;
+                                } else if (isFriday) {
+                                  masehiColor = Colors.greenAccent;
+                                }
+                                if (isToday) masehiColor = NurKitabColors.gold;
+
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: isToday
+                                        ? NurKitabColors.gold.withValues(
+                                            alpha: 0.2,
+                                          )
+                                        : NurKitabColors.cardGreen.withValues(
+                                            alpha: 0.6,
+                                          ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isToday
+                                          ? NurKitabColors.gold
+                                          : NurKitabColors.gold.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      width: isToday ? 1.5 : 1.0,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "$tglMasehi",
+                                        style: TextStyle(
+                                          color: masehiColor,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "${hijri['day']}",
+                                        style: TextStyle(
+                                          color: NurKitabColors.gold.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      if (isHoliday)
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 2),
+                                          width: 4,
+                                          height: 4,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.redAccent,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      if (_monthlyHolidays.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: NurKitabColors.cardGreenLight,
+                            border: Border(
+                              top: BorderSide(
+                                color: NurKitabColors.gold.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Hari Libur & Peringatan:",
+                                style: TextStyle(
+                                  color: NurKitabColors.gold,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              ..._monthlyHolidays.entries.map((e) {
+                                final parts = e.key.split('-');
+                                final day = int.parse(parts[2]);
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        width: 70,
+                                        child: Text(
+                                          "$day ${_namaBulanMasehi[_currentMonth]}",
+                                          style: const TextStyle(
+                                            color: Colors.redAccent,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "- ${e.value}",
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
