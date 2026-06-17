@@ -17,6 +17,8 @@ dependencies:
   geolocator: ^13.0.0 
   geocoding: ^3.0.0
   shared_preferences: ^2.3.0
+  flutter_local_notifications: ^22.0.1
+  timezone: ^0.11.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -28,11 +30,16 @@ flutter:
 
   assets:
     - asset/images/
+    - asset/json/
+    - asset/json/surah/
 
   fonts:
     - family: Amiri
       fonts:
         - asset: asset/fonts/AmiriQuran.ttf
+    - family: ArefRuqaa
+      fonts:
+        - asset: asset/fonts/ArefRuqaa.ttf
 
 flutter_launcher_icons:
   android: "launcher_icon"
