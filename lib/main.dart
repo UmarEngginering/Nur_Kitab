@@ -1734,10 +1734,9 @@ class SholawatMaulidPage extends StatelessWidget {
       (
         'Maulid & Qashidah',
         const [
-          'Maulid Simtutdurar (pembuka)',
+          'Maulid Barzanji Nadzom',
+          'Maulid Diba\'i',
           'Qashidah Burdah',
-          'Qashidah Ya Imamarusli',
-          'Qashidah Busro Lana',
         ],
       ),
     ];
@@ -1776,6 +1775,19 @@ class SholawatMaulidPage extends StatelessWidget {
                   color: NurKitabColors.gold,
                 ),
                 onTap: () {
+                  if (item == 'Maulid Diba\'i') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SubMenuMaulidDibai(
+                          skalaFont: skalaFont,
+                          isDarkMode: isDarkMode,
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
                   String fName = 'sholawat';
                   if (item.startsWith('Maulid')) {
                     fName = 'maulid';
@@ -2084,10 +2096,9 @@ class MaulidPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> maulid = [
-      "Maulid Simtutdurar (pembuka)",
+      "Maulid Barzanji Nadzom",
+      "Maulid Diba\'i",
       "Qashidah Burdah (Bab 1)",
-      "Qashidah Ya Imamarusli",
-      "Qashidah Busro Lana",
     ];
     return Scaffold(
       backgroundColor: NurKitabColors.deepGreen,
@@ -2118,6 +2129,19 @@ class MaulidPage extends StatelessWidget {
                 size: 20,
               ),
               onTap: () {
+                if (maulid[index] == "Maulid Diba\'i") {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SubMenuMaulidDibai(
+                        skalaFont: skalaFont,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
                 String fName = maulid[index].startsWith('Maulid')
                     ? 'maulid'
                     : 'qashidah';
@@ -2127,6 +2151,99 @@ class MaulidPage extends StatelessWidget {
                     builder: (context) => IsiBacaanPage(
                       judul: maulid[index],
                       fileName: fName,
+                      skalaFont: skalaFont,
+                      isDarkMode: isDarkMode,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SubMenuMaulidDibai extends StatelessWidget {
+  final double skalaFont;
+  final bool isDarkMode;
+
+  const SubMenuMaulidDibai({
+    super.key,
+    required this.skalaFont,
+    required this.isDarkMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> dibaiChapters = [
+      "Niat dan Hadiah Fatihah",
+      "Ya Rabbi shalli...",
+      "Ya Rasûlallah...",
+      "Innâ fataḥnâ...",
+      "Al-ḥamdulillâhil qawiyy...",
+      "Qîla huwa âdam...",
+      "Yub‘atsu min tihamah...",
+      "Tsumma ardudduhu...",
+      "Shalâtullâhi ma laḥat...",
+      "Fasubḥânaman khashshahû...",
+      "Awwalu mâ nastaftiḥu...",
+      "Al-ḥadîtsul awwal...",
+      "Al-ḥadîtsuts tsânî...",
+      "Fayaqûlul haqqu...",
+      "Ahdhirû qulûbakum...",
+      "Fahtazzal arsyu...",
+      "Mahallul Qiyâm: Yâ nabî salam...",
+      "Wawulida shallallâhu...",
+      "Qîla man yakfulu...",
+      "Tsumma a’radla...",
+      "Fabainamal habîbu...",
+      "Faqâlatil malâikah...",
+      "Fabainamal habîbu shallallâhu...",
+      "Falammâ ra’athu halîmah...",
+      "Wa kâna shallallâhu...",
+      "Wa qîla liba’dlihim...",
+      "Wa mâ ‘asâ an yuqâla...",
+      "Ya badratimmin...",
+      "Doa Maulid ad-Diba’i"
+    ];
+
+    return Scaffold(
+      backgroundColor: NurKitabColors.deepGreen,
+      appBar: nurKitabAppBar('Maulid Diba\'i'),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: dibaiChapters.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: nurKitabCardDecoration(radius: 12),
+            child: ListTile(
+              leading: nurKitabAsset(
+                NurKitabAssets.iconSholawat,
+                width: 40,
+                height: 40,
+              ),
+              title: Text(
+                "${index + 1}. ${dibaiChapters[index]}",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: const Icon(
+                Icons.chevron_right,
+                color: NurKitabColors.gold,
+                size: 20,
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IsiBacaanPage(
+                      judul: dibaiChapters[index],
+                      fileName: 'maulid',
                       skalaFont: skalaFont,
                       isDarkMode: isDarkMode,
                     ),
@@ -2282,6 +2399,66 @@ class _IsiBacaanPageState extends State<IsiBacaanPage> {
                 final item = _bacaanData[index];
 
                 if (item is Map) {
+                  // Cek khusus untuk refrain Maulid Barzanji Nadzom
+                  if (item['bait_kanan'] == "إِلهِيْ رَوِّحْ رُوْحَهُ وَ ضَرِيْحَهُ") {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      decoration: nurKitabCardDecoration(radius: 16).copyWith(
+                        gradient: LinearGradient(
+                          colors: widget.isDarkMode
+                              ? [
+                                  NurKitabColors.cardGreenLight,
+                                  NurKitabColors.deepGreen,
+                                ]
+                              : [
+                                  const Color(0xFFF2F6F3),
+                                  const Color(0xFFE8EFEA),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(
+                          color: NurKitabColors.gold.withValues(alpha: 0.8),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            item['bait_kanan'] ?? '',
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.isDarkMode
+                                  ? NurKitabColors.gold
+                                  : NurKitabColors.deepGreen,
+                              fontSize: 22 * widget.skalaFont,
+                              fontWeight: FontWeight.bold,
+                              height: 2.0,
+                              fontFamily: 'Amiri',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            item['bait_kiri'] ?? '',
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.isDarkMode
+                                  ? NurKitabColors.gold
+                                  : NurKitabColors.deepGreen,
+                              fontSize: 22 * widget.skalaFont,
+                              fontWeight: FontWeight.bold,
+                              height: 2.0,
+                              fontFamily: 'Amiri',
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   // Format Qashidah (Bait Kanan - Kiri)
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -2353,27 +2530,33 @@ class _IsiBacaanPageState extends State<IsiBacaanPage> {
                       (widget.judul.startsWith('Qashidah') ||
                           widget.judul.startsWith('Sholawat') ||
                           widget.judul.startsWith('Ratib') ||
-                          widget.judul.startsWith('Hizib'));
+                          widget.judul.startsWith('Hizib') ||
+                          widget.judul == 'Maulid Barzanji Nadzom');
                           
-                  final bool isCenter = isMasterTitle ||
+                  final String textItem = item.toString();
+                  final bool isSubTitle = textItem == 'مَحَلُّ الْقِيَام' || textItem == 'دعاء مولد الديبعي';
+                  final bool isCenter = isMasterTitle || isSubTitle ||
                       widget.judul == 'Qashidah Burdah' ||
-                      widget.judul == 'Sholawat Badar';
+                      widget.judul == 'Sholawat Badar' ||
+                      (widget.judul == 'Maulid Barzanji Nadzom' &&
+                          (textItem.contains('بِسْمِ اللهِ') ||
+                              textItem.contains('سُبْحَانَ اللهِ')));
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: Text(
-                      item.toString(),
+                      textItem,
                       textDirection: TextDirection.rtl,
                       textAlign: isCenter ? TextAlign.center : TextAlign.justify,
                       style: TextStyle(
                         color: widget.isDarkMode
                             ? Colors.white
                             : Colors.black87,
-                        fontSize: isMasterTitle
+                        fontSize: (isMasterTitle || isSubTitle)
                             ? 38 * widget.skalaFont
                             : 26 * widget.skalaFont,
-                        height: isMasterTitle ? 1.5 : 2.4,
-                        fontFamily: isMasterTitle ? 'ArefRuqaa' : 'Amiri',
+                        height: (isMasterTitle || isSubTitle) ? 1.5 : 2.4,
+                        fontFamily: (isMasterTitle || isSubTitle) ? 'ArefRuqaa' : 'Amiri',
                       ),
                     ),
                   );
