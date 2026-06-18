@@ -2241,9 +2241,9 @@ class SubMenuMaulidDibai extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => IsiBacaanPage(
-                      judul: dibaiChapters[index],
-                      fileName: 'maulid',
+                    builder: (context) => MaulidDibaiSwipePage(
+                      initialIndex: index,
+                      dibaiChapters: dibaiChapters,
                       skalaFont: skalaFont,
                       isDarkMode: isDarkMode,
                     ),
@@ -2254,6 +2254,56 @@ class SubMenuMaulidDibai extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class MaulidDibaiSwipePage extends StatefulWidget {
+  final int initialIndex;
+  final List<String> dibaiChapters;
+  final double skalaFont;
+  final bool isDarkMode;
+
+  const MaulidDibaiSwipePage({
+    super.key,
+    required this.initialIndex,
+    required this.dibaiChapters,
+    required this.skalaFont,
+    required this.isDarkMode,
+  });
+
+  @override
+  State<MaulidDibaiSwipePage> createState() => _MaulidDibaiSwipePageState();
+}
+
+class _MaulidDibaiSwipePageState extends State<MaulidDibaiSwipePage> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: widget.dibaiChapters.length,
+      itemBuilder: (context, index) {
+        return IsiBacaanPage(
+          judul: widget.dibaiChapters[index],
+          fileName: 'maulid',
+          skalaFont: widget.skalaFont,
+          isDarkMode: widget.isDarkMode,
+        );
+      },
     );
   }
 }
@@ -2275,6 +2325,8 @@ class HizibPage extends StatelessWidget {
       "Ratib Al-Atthas",
       "Hizib Nashor",
       "Hizib Bahar",
+      "Munajat",
+      "Jailani",
     ];
     return Scaffold(
       backgroundColor: NurKitabColors.deepGreen,
@@ -2531,34 +2583,72 @@ class _IsiBacaanPageState extends State<IsiBacaanPage> {
                           widget.judul.startsWith('Sholawat') ||
                           widget.judul.startsWith('Ratib') ||
                           widget.judul.startsWith('Hizib') ||
-                          widget.judul == 'Maulid Barzanji Nadzom');
+                          widget.judul == 'Munajat' ||
+                          widget.judul == 'Maulid Barzanji Nadzom' ||
+                          widget.judul == 'Jailani' ||
+                          widget.judul == 'Tahlil' ||
+                          widget.judul == 'Doa Tahlil');
                           
                   final String textItem = item.toString();
                   final bool isSubTitle = textItem == 'مَحَلُّ الْقِيَام' || textItem == 'دعاء مولد الديبعي';
-                  final bool isCenter = isMasterTitle || isSubTitle ||
+                  final bool isSholawatPenutup = textItem.contains('اَللّٰهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَيْهِ');
+                  
+                  final bool isCenteredJailani = widget.judul == 'Jailani' && 
+                      (textItem == '( الدُّعَاء )' || 
+                       textItem == 'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ' || 
+                       textItem == 'بِحُرْمَةِ الْفَاتِحَةِ');
+                  final bool isBoldJailani = widget.judul == 'Jailani' && textItem == '( الدُّعَاء )';
+                  
+                  final bool isCenter = isMasterTitle || isSubTitle || isSholawatPenutup || isCenteredJailani ||
                       widget.judul == 'Qashidah Burdah' ||
                       widget.judul == 'Sholawat Badar' ||
                       (widget.judul == 'Maulid Barzanji Nadzom' &&
                           (textItem.contains('بِسْمِ اللهِ') ||
                               textItem.contains('سُبْحَانَ اللهِ')));
 
+                  Widget contentWidget = Text(
+                    textItem,
+                    textDirection: TextDirection.rtl,
+                    textAlign: isCenter ? TextAlign.center : TextAlign.justify,
+                    style: TextStyle(
+                      color: widget.isDarkMode
+                          ? Colors.white
+                          : Colors.black87,
+                      fontWeight: (isSholawatPenutup || isBoldJailani) ? FontWeight.bold : null,
+                      fontSize: (isMasterTitle || isSubTitle)
+                          ? 38 * widget.skalaFont
+                          : 26 * widget.skalaFont,
+                      height: (isMasterTitle || isSubTitle) ? 1.5 : 2.4,
+                      fontFamily: (isMasterTitle || isSubTitle) ? 'ArefRuqaa' : 'Amiri',
+                    ),
+                  );
+
+                  if (isMasterTitle) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 30, top: 10),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: widget.isDarkMode ? Colors.white38 : Colors.black38,
+                              width: 1.5,
+                            ),
+                            bottom: BorderSide(
+                              color: widget.isDarkMode ? Colors.white38 : Colors.black38,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        child: contentWidget,
+                      ),
+                    );
+                  }
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20),
-                    child: Text(
-                      textItem,
-                      textDirection: TextDirection.rtl,
-                      textAlign: isCenter ? TextAlign.center : TextAlign.justify,
-                      style: TextStyle(
-                        color: widget.isDarkMode
-                            ? Colors.white
-                            : Colors.black87,
-                        fontSize: (isMasterTitle || isSubTitle)
-                            ? 38 * widget.skalaFont
-                            : 26 * widget.skalaFont,
-                        height: (isMasterTitle || isSubTitle) ? 1.5 : 2.4,
-                        fontFamily: (isMasterTitle || isSubTitle) ? 'ArefRuqaa' : 'Amiri',
-                      ),
-                    ),
+                    child: contentWidget,
                   );
                 }
               },
@@ -2588,6 +2678,8 @@ class HalamanMubarakQuran extends StatefulWidget {
 class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
   Map<String, dynamic>? _detailSurah;
   bool _isLoading = true;
+  String _surahArab = "";
+  String _countAyat = "";
 
   @override
   void initState() {
@@ -2608,12 +2700,25 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
 
   Future<void> _ambilDetailSurah() async {
     try {
+      // Ambil metadata surah dari surah.json
+      final String surahMetadataJson = await rootBundle.loadString('asset/json/surah.json');
+      final Map<String, dynamic> allSurah = json.decode(surahMetadataJson);
+      final List<dynamic> listSurah = allSurah['data'] ?? [];
+      final surahInfo = listSurah.firstWhere(
+          (s) => s['id'] == widget.nomorSurah,
+          orElse: () => null);
+
       final String jsonString = await rootBundle.loadString(
         'asset/json/surah/${widget.nomorSurah}.json',
       );
       final Map<String, dynamic> dataJson = json.decode(jsonString);
+      
       setState(() {
         _detailSurah = dataJson;
+        if (surahInfo != null) {
+          _surahArab = surahInfo['surat_text']?.toString().trim() ?? "";
+          _countAyat = surahInfo['count_ayat']?.toString() ?? "";
+        }
         _isLoading = false;
       });
     } catch (e) {
@@ -2662,6 +2767,114 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
     return totalTeks;
   }
 
+  Widget _buildCornerOrnament() {
+    return Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        color: NurKitabColors.gold,
+        border: Border.all(
+          color: widget.isDarkMode ? Colors.black12 : const Color(0xFFFDFBF7),
+          width: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSurahHeader() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Stack(
+            children: [
+              // Container Utama: Mode Bingkai Mushaf Klasik (Double Border)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: widget.isDarkMode ? Colors.black12 : const Color(0xFFFDFBF7),
+                  border: Border.all(color: NurKitabColors.gold, width: 3),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: NurKitabColors.gold, width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Kiri: Nama Surah Latin
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          widget.judulSurah,
+                          style: TextStyle(
+                            fontSize: 14 * widget.skalaFont,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      // Tengah: Nama Arab Surah
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          "سُوْرَةُ ${_surahArab.isNotEmpty ? _surahArab : widget.judulSurah}",
+                          textAlign: TextAlign.center,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(
+                            fontSize: 26 * widget.skalaFont,
+                            fontFamily: 'ArefRuqaa',
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? NurKitabColors.gold : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      // Kanan: Jumlah Ayat
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          "${_countAyat.isNotEmpty ? _countAyat : '-'} Ayat",
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontSize: 14 * widget.skalaFont,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Ornamen Pojok Bingkai (Khas Mushaf)
+              Positioned(top: 0, left: 0, child: _buildCornerOrnament()),
+              Positioned(top: 0, right: 0, child: _buildCornerOrnament()),
+              Positioned(bottom: 0, left: 0, child: _buildCornerOrnament()),
+              Positioned(bottom: 0, right: 0, child: _buildCornerOrnament()),
+            ],
+          ),
+        ),
+        if (widget.nomorSurah != 9 && widget.nomorSurah != 1)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Text(
+              "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                fontSize: 28 * widget.skalaFont,
+                fontFamily: 'ArefRuqaa',
+                color: widget.isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2679,16 +2892,22 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Text(
-                _ambilGabunganAyat(),
-                textDirection: TextDirection.rtl,
-                textAlign: TextAlign.justify,
-                style: TextStyle(
-                  fontSize: 26 * widget.skalaFont,
-                  height: 2.4,
-                  color: widget.isDarkMode ? Colors.white : Colors.black87,
-                  fontFamily: 'Amiri',
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildSurahHeader(),
+                  Text(
+                    _ambilGabunganAyat(),
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.justify,
+                    style: TextStyle(
+                      fontSize: 26 * widget.skalaFont,
+                      height: 2.4,
+                      color: widget.isDarkMode ? Colors.white : Colors.black87,
+                      fontFamily: 'Amiri',
+                    ),
+                  ),
+                ],
               ),
             ),
     );
