@@ -19,6 +19,7 @@ dependencies:
   shared_preferences: ^2.3.0
   flutter_local_notifications: ^22.0.1
   timezone: ^0.11.0
+  visibility_detector: ^0.4.0+2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -32,6 +33,7 @@ flutter:
     - asset/images/
     - asset/json/
     - asset/json/surah/
+    - asset/audio/
 
   fonts:
     - family: Amiri

@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -58,7 +59,7 @@ class NotificationService {
     
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'prayer_time_channel_id',
+      'prayer_time_channel_id_v2', // Diubah agar sistem mereset setting channel
       'Waktu Sholat',
       channelDescription: 'Pengingat notifikasi waktu sholat',
       importance: Importance.max,
@@ -66,6 +67,8 @@ class NotificationService {
       playSound: true,
       enableVibration: true,
       sound: RawResourceAndroidNotificationSound(soundFileName),
+      additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT: looping sampai di klik
+      audioAttributesUsage: AudioAttributesUsage.alarm, // Dianggap sebagai alarm penuh
     );
 
     final NotificationDetails platformChannelSpecifics =

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -7,6 +8,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 🟢 Wajib untuk membaca/menyimpan memori
 import 'package:nur_kitab/services/notification_service.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'juz_data.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -130,7 +134,7 @@ class _HomePageState extends State<HomePage> {
   bool isDarkMode = false;
   double skalaFont = 1.0;
   bool isAdzanEnabled = true;
-  String adzanSound = 'Mekkah';
+  String adzanSound = 'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 1';
 
   @override
   void initState() {
@@ -144,7 +148,7 @@ class _HomePageState extends State<HomePage> {
       isDarkMode = prefs.getBool('isDarkMode') ?? false;
       skalaFont = prefs.getDouble('skalaFont') ?? 1.0;
       isAdzanEnabled = prefs.getBool('isAdzanEnabled') ?? true;
-      adzanSound = prefs.getString('adzanSound') ?? 'Mekkah';
+      adzanSound = prefs.getString('adzanSound') ?? 'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 1';
     });
   }
 
@@ -397,8 +401,11 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent> {
+  String _lastReadType = 'surah'; // 'surah' or 'juz'
   int _lastSurahNomor = 18; // Default awal jika memori kosong: Al-Kahfi
   String _lastSurahNama = 'Al-Kahfi';
+  int _lastJuzNomor = 1;
+  String _lastJuzSubtitle = '';
 
   @override
   void initState() {
@@ -409,9 +416,41 @@ class _HomeContentState extends State<HomeContent> {
   // Fungsi untuk menarik data dari memori penyimpanan lokal HP
   Future<void> _muatBacaanTerakhir() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    String lastReadType = prefs.getString('last_read_type') ?? 'surah';
+    int lastSurahNomor = prefs.getInt('last_surah_nomor') ?? 18;
+    String lastSurahNama = prefs.getString('last_surah_nama') ?? 'Al-Kahfi';
+    int lastJuzNomor = prefs.getInt('last_juz_nomor') ?? 1;
+    String lastJuzSubtitle = 'Lanjutkan Juz $lastJuzNomor';
+
+    if (lastReadType == 'juz') {
+      String? savedJuzSurah = prefs.getString('last_juz_surah');
+      if (savedJuzSurah != null && savedJuzSurah.isNotEmpty) {
+        lastJuzSubtitle = savedJuzSurah;
+      } else {
+        try {
+          final juzInfo = juzMapping.firstWhere((j) => j['juz'] == lastJuzNomor, orElse: () => juzMapping[0]);
+          final String surahMetadataJson = await rootBundle.loadString('asset/json/surah.json');
+          final Map<String, dynamic> allSurah = json.decode(surahMetadataJson);
+          final List<dynamic> listSurah = allSurah['data'] ?? [];
+          
+          final startSurah = listSurah.firstWhere((s) => s['id'] == juzInfo['start_sura'], orElse: () => null);
+          
+          String startName = startSurah != null ? (startSurah['namaLatin'] ?? startSurah['surat_name'] ?? '') : '';
+          
+          lastJuzSubtitle = startName.isNotEmpty ? startName : 'Lanjutkan Juz $lastJuzNomor';
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
     setState(() {
-      _lastSurahNomor = prefs.getInt('last_surah_nomor') ?? 18;
-      _lastSurahNama = prefs.getString('last_surah_nama') ?? 'Al-Kahfi';
+      _lastReadType = lastReadType;
+      _lastSurahNomor = lastSurahNomor;
+      _lastSurahNama = lastSurahNama;
+      _lastJuzNomor = lastJuzNomor;
+      _lastJuzSubtitle = lastJuzSubtitle;
     });
   }
 
@@ -701,7 +740,7 @@ class _HomeContentState extends State<HomeContent> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _lastSurahNama, // 🟢 Dinamis mengikuti data memori lokal
+                      _lastReadType == 'juz' ? "Juz $_lastJuzNomor" : _lastSurahNama, // 🟢 Dinamis mengikuti data memori lokal
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -709,7 +748,7 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ),
                     Text(
-                      'Surat Ke-$_lastSurahNomor', // 🟢 Menampilkan urutan nomor surah dinamis
+                      _lastReadType == 'juz' ? _lastJuzSubtitle : 'Surat Ke-$_lastSurahNomor', // 🟢 Menampilkan urutan nomor surah dinamis
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
@@ -725,20 +764,36 @@ class _HomeContentState extends State<HomeContent> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(24),
                   onTap: () {
-                    // 🟢 Membuka surah terakhir yang terekam
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HalamanMubarakQuran(
-                          nomorSurah: _lastSurahNomor,
-                          judulSurah: _lastSurahNama,
-                          skalaFont: widget.skalaFont,
-                          isDarkMode: widget.isDarkMode,
+                    // 🟢 Membuka surah atau juz terakhir yang terekam
+                    if (_lastReadType == 'juz') {
+                      final juzInfo = juzMapping.firstWhere((j) => j['juz'] == _lastJuzNomor, orElse: () => juzMapping[0]);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HalamanMubarakJuz(
+                            juzInfo: juzInfo,
+                            skalaFont: widget.skalaFont,
+                            isDarkMode: widget.isDarkMode,
+                          ),
                         ),
-                      ),
-                    ).then(
-                      (_) => _muatBacaanTerakhir(),
-                    ); // 🟢 Refresh data saat user kembali ke Beranda
+                      ).then(
+                        (_) => _muatBacaanTerakhir(),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HalamanMubarakQuran(
+                            nomorSurah: _lastSurahNomor,
+                            judulSurah: _lastSurahNama,
+                            skalaFont: widget.skalaFont,
+                            isDarkMode: widget.isDarkMode,
+                          ),
+                        ),
+                      ).then(
+                        (_) => _muatBacaanTerakhir(),
+                      ); // 🟢 Refresh data saat user kembali ke Beranda
+                    }
                   },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -862,13 +917,13 @@ class _HomeContentState extends State<HomeContent> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+              padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
                     width: constraints.maxWidth,
-                    height: constraints.maxHeight * 0.44,
+                    height: constraints.maxHeight * 0.40,
                     child: Center(
                       child: nurKitabAsset(
                         item.imageAsset,
@@ -876,13 +931,16 @@ class _HomeContentState extends State<HomeContent> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     item.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: NurKitabColors.gold,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12.5,
+                      fontSize: 13,
                       height: 1.2,
                     ),
                   ),
@@ -890,30 +948,33 @@ class _HomeContentState extends State<HomeContent> {
                   Expanded(
                     child: Text(
                       item.description,
+                      textAlign: TextAlign.center,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.65),
-                        fontSize: 9.5,
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 10,
                         height: 1.3,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.center,
                     child: Container(
-                      width: 24,
-                      height: 24,
+                      width: 26,
+                      height: 26,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: NurKitabColors.gold.withValues(alpha: 0.5),
+                          width: 1.2,
                         ),
                       ),
                       child: const Icon(
                         Icons.chevron_right,
                         color: NurKitabColors.gold,
-                        size: 16,
+                        size: 18,
                       ),
                     ),
                   ),
@@ -1013,10 +1074,13 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
 
       if (savedLat != null && savedLng != null && savedNama != null) {
         await _ambilJadwalSholat(lat: savedLat, lng: savedLng, nama: savedNama);
-        return;
+      } else {
+        await _simpanLokasiDanAmbilJadwal(
+          -7.1561,
+          113.4812,
+          "Kabupaten Pamekasan",
+        );
       }
-
-      await _cariLokasiGPSTerbaru();
     } catch (e) {
       setState(() {
         _errorMsg = "Gagal memuat lokasi harian.";
@@ -1087,12 +1151,20 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
           final dataGeo = json.decode(responGeo.body);
           final address = dataGeo['address'];
           if (address != null) {
-            namaKotaDinamis =
-                address['county'] ??
-                address['city'] ??
-                address['regency'] ??
-                address['town'] ??
-                "Lokasi Anda";
+            String desa = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? address['hamlet'] ?? '';
+            String kecamatan = address['city_district'] ?? address['district'] ?? address['municipality'] ?? '';
+            String kabupaten = address['county'] ?? address['city'] ?? address['regency'] ?? address['town'] ?? '';
+            
+            List<String> parts = [];
+            if (desa.isNotEmpty) parts.add(desa);
+            if (kecamatan.isNotEmpty) parts.add(kecamatan);
+            if (parts.isEmpty && kabupaten.isNotEmpty) parts.add(kabupaten);
+
+            if (parts.isNotEmpty) {
+              namaKotaDinamis = parts.join(", ");
+            } else {
+              namaKotaDinamis = "Lokasi Anda";
+            }
           }
         }
       } catch (e) {
@@ -1132,81 +1204,110 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
   }) async {
     try {
       final sekarang = DateTime.now();
-      final tanggalStr = "${sekarang.day}-${sekarang.month}-${sekarang.year}";
+      final prefs = await SharedPreferences.getInstance();
 
-      // Menggunakan Method Kemenag RI (Id: 20) secara default
       final url =
-          'https://api.aladhan.com/v1/timings/$tanggalStr?latitude=$lat&longitude=$lng&method=20';
+          'https://api.aladhan.com/v1/calendar/${sekarang.year}/${sekarang.month}?latitude=$lat&longitude=$lng&method=20';
 
-      final respon = await http.get(Uri.parse(url));
-      if (respon.statusCode == 200) {
-        final dataJson = json.decode(respon.body)['data'];
-        final dataTimings = dataJson['timings'];
-        final dateInfo = dataJson['date'];
+      Map<String, dynamic>? dataJsonBulanIni;
+      
+      try {
+        final respon = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+        if (respon.statusCode == 200) {
+          await prefs.setString('jadwal_bulanan_cache', respon.body);
+          dataJsonBulanIni = json.decode(respon.body);
+        }
+      } catch (_) {}
 
-        setState(() {
-          _tanggalMasehi = dateInfo['readable'] ?? '';
+      if (dataJsonBulanIni == null) {
+        final cachedData = prefs.getString('jadwal_bulanan_cache');
+        if (cachedData != null) {
+          dataJsonBulanIni = json.decode(cachedData);
+        } else {
+          throw Exception("Tidak ada cache jadwal offline.");
+        }
+      }
 
-          if (dateInfo['hijri'] != null) {
-            final hijri = dateInfo['hijri'];
-            _tanggalHijriyah =
-                "${hijri['day']} ${hijri['month']['en']} ${hijri['year']} H";
-          }
+      final List<dynamic> dataDays = dataJsonBulanIni!['data'];
+      final dataHariIni = dataDays.firstWhere(
+        (day) => day['date']['gregorian']['day'] == sekarang.day.toString().padLeft(2, '0'),
+        orElse: () => dataDays.first,
+      );
+      
+      final dataTimings = dataHariIni['timings'];
+      final dateInfo = dataHariIni['date'];
 
-          _prayers = {
-            'Imsak': dataTimings['Imsak'] ?? '00:00',
-            'Subuh': dataTimings['Fajr'] ?? '00:00',
-            'Terbit': dataTimings['Sunrise'] ?? '00:00',
-            'Dzuhur': dataTimings['Dhuhr'] ?? '00:00',
-            'Ashar': dataTimings['Asr'] ?? '00:00',
-            'Maghrib': dataTimings['Maghrib'] ?? '00:00',
-            'Isya': dataTimings['Isha'] ?? '00:00',
-          };
-          _namaLokasi = nama;
-          _isLoading = false;
-        });
+      setState(() {
+        _tanggalMasehi = dateInfo['readable'] ?? '';
+        if (dateInfo['hijri'] != null) {
+          final hijri = dateInfo['hijri'];
+          _tanggalHijriyah =
+              "${hijri['day']} ${hijri['month']['en']} ${hijri['year']} H";
+        }
 
-        // --- Penjadwalan Notifikasi Adzan ---
-        final prefs = await SharedPreferences.getInstance();
-        final bool isAdzanEnabled = prefs.getBool('isAdzanEnabled') ?? true;
-        final String adzanSound = prefs.getString('adzanSound') ?? 'Mekkah';
+        String cleanTime(String time) => time.split(' ')[0];
 
-        if (isAdzanEnabled) {
-          await NotificationService.cancelAllNotifications();
+        _prayers = {
+          'Imsak': cleanTime(dataTimings['Imsak'] ?? '00:00'),
+          'Subuh': cleanTime(dataTimings['Fajr'] ?? '00:00'),
+          'Terbit': cleanTime(dataTimings['Sunrise'] ?? '00:00'),
+          'Dzuhur': cleanTime(dataTimings['Dhuhr'] ?? '00:00'),
+          'Ashar': cleanTime(dataTimings['Asr'] ?? '00:00'),
+          'Maghrib': cleanTime(dataTimings['Maghrib'] ?? '00:00'),
+          'Isya': cleanTime(dataTimings['Isha'] ?? '00:00'),
+        };
+        _namaLokasi = nama;
+        _isLoading = false;
+      });
 
-          int idCounter = 0;
-          final sholatNames = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
-          final timingKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+      // --- Penjadwalan Notifikasi Adzan (Offline & 7 Hari Kedepan) ---
+      final bool isAdzanEnabled = prefs.getBool('isAdzanEnabled') ?? true;
+      final String adzanSound = prefs.getString('adzanSound') ?? 'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 1';
 
-          for (int i = 0; i < sholatNames.length; i++) {
-            final String timeStr = dataTimings[timingKeys[i]] ?? '';
+      if (isAdzanEnabled) {
+        await NotificationService.cancelAllNotifications();
+        int idCounter = 0;
+        final sholatNames = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
+        final timingKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+        int currentDayIdx = sekarang.day - 1; 
+        int maxDays = 7;
+        for (int i = 0; i < maxDays; i++) {
+          if (currentDayIdx + i >= dataDays.length) break;
+          
+          final targetDayData = dataDays[currentDayIdx + i];
+          final tDayStr = targetDayData['date']['gregorian']['day'];
+          final int tDay = int.parse(tDayStr);
+          final targetTimings = targetDayData['timings'];
+          
+          for (int s = 0; s < sholatNames.length; s++) {
+            String timeStr = targetTimings[timingKeys[s]] ?? '';
             if (timeStr.isNotEmpty) {
-              // Waktu dari API seperti "04:15"
-              final timeParts = timeStr.split(' ')[0].split(':');
+              timeStr = timeStr.split(' ')[0];
+              final timeParts = timeStr.split(':');
               final hour = int.parse(timeParts[0]);
               final minute = int.parse(timeParts[1]);
 
               final scheduleTime = DateTime(
                 sekarang.year,
                 sekarang.month,
-                sekarang.day,
+                tDay,
                 hour,
                 minute,
               );
-
-              await NotificationService.schedulePrayerNotification(
-                id: idCounter++,
-                title: 'Waktu ${sholatNames[i]}',
-                body:
-                    'Telah masuk waktu sholat ${sholatNames[i]} untuk $_namaLokasi.',
-                scheduledTime: scheduleTime,
-                soundType: adzanSound,
-              );
+              
+              if (scheduleTime.isAfter(DateTime.now())) {
+                await NotificationService.schedulePrayerNotification(
+                  id: idCounter++,
+                  title: 'Waktu ${sholatNames[s]}',
+                  body: 'Telah masuk waktu sholat ${sholatNames[s]} untuk $_namaLokasi.',
+                  scheduledTime: scheduleTime,
+                  soundType: adzanSound,
+                );
+              }
             }
           }
         }
-      } else {
-        throw Exception("Gagal memuat API");
       }
     } catch (e) {
       setState(() {
@@ -1273,6 +1374,16 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
       namaSholatBerikutnya = "Imsak (Besok)";
     }
 
+    int targetHour = int.parse(waktuSholatBerikutnya.split(':')[0]);
+    int targetMinute = int.parse(waktuSholatBerikutnya.split(':')[1]);
+    DateTime targetTime = DateTime(sekarang.year, sekarang.month, sekarang.day, targetHour, targetMinute, 0);
+    if (namaSholatBerikutnya.contains('Besok')) {
+      targetTime = targetTime.add(const Duration(days: 1));
+    }
+    Duration diff = targetTime.difference(sekarang);
+    if (diff.isNegative) diff = const Duration(seconds: 0);
+    String countdownStr = "- ${diff.inHours.toString().padLeft(2, '0')} : ${(diff.inMinutes % 60).toString().padLeft(2, '0')} : ${(diff.inSeconds % 60).toString().padLeft(2, '0')}";
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -1285,7 +1396,7 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            padding: const EdgeInsets.only(top: 60, bottom: 24, left: 20, right: 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
@@ -1301,37 +1412,47 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
             ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Column(
                   children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: NurKitabColors.gold,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        _namaLokasi,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    InkWell(
-                      onTap: _cariLokasiGPSTerbaru,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Icon(
-                          Icons.refresh,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.location_on,
                           color: NurKitabColors.gold,
-                          size: 18,
+                          size: 14,
                         ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          "Lokasi Anda",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: _cariLokasiGPSTerbaru,
+                          child: const Padding(
+                            padding: EdgeInsets.all(2.0),
+                            child: Icon(
+                              Icons.refresh,
+                              color: NurKitabColors.gold,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _namaLokasi,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -1400,7 +1521,7 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
                   child: Column(
                     children: [
                       Text(
-                        waktuSholatBerikutnya,
+                        countdownStr,
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -1476,7 +1597,7 @@ class _PrayerSchedulePageState extends State<PrayerSchedulePage> {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   final bool isDarkMode;
   final double skalaFont;
   final ValueChanged<bool> onThemeChanged;
@@ -1498,6 +1619,50 @@ class ProfilePage extends StatelessWidget {
     required this.onAdzanChanged,
     required this.onAdzanSoundChanged,
   });
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  void _togglePlayAdzan() async {
+    if (_isPlaying) {
+      await _audioPlayer.stop();
+      if (mounted) setState(() => _isPlaying = false);
+    } else {
+      if (widget.adzanSound == 'Standar') return;
+      
+      // audioplayers versi 6 akan selalu menambahkan 'assets/' di depan file.
+      // Karena flutter meng-compile folder 'asset' kita menjadi key yang persis,
+      // kita harus menghapus prefix default tersebut agar jalan di HP.
+      AudioCache.instance.prefix = '';
+      
+      String assetPath = 'asset/audio/adzan_mishary_1.mp3';
+      if (widget.adzanSound == 'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 2') {
+        assetPath = 'asset/audio/adzan_mishary_2.mp3';
+      }
+      
+      try {
+        await _audioPlayer.play(AssetSource(assetPath));
+        if (mounted) setState(() => _isPlaying = true);
+        
+        _audioPlayer.onPlayerComplete.listen((event) {
+          if (mounted) setState(() => _isPlaying = false);
+        });
+      } catch (e) {
+        debugPrint("Error playing audio: $e");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1555,17 +1720,21 @@ class ProfilePage extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  value: isAdzanEnabled,
+                  value: widget.isAdzanEnabled,
                   activeThumbColor: NurKitabColors.gold,
-                  onChanged: onAdzanChanged,
+                  onChanged: widget.onAdzanChanged,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  child: DropdownButtonFormField<String>(
-                    value: adzanSound,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: widget.adzanSound,
                     decoration: const InputDecoration(
                       labelText: 'Suara Adzan',
                       labelStyle: TextStyle(color: NurKitabColors.goldDim),
@@ -1575,15 +1744,34 @@ class ProfilePage extends StatelessWidget {
                     ),
                     dropdownColor: NurKitabColors.cardGreen,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    items: ['Standar', 'Mekkah', 'Madinah'].map((String value) {
+                    items: [
+                      'Standar',
+                      'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 1',
+                      'Adzan Kurdi Syeikh Mishary Rashid Al-Afasy 2'
+                    ].map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value),
+                        child: Text(value, overflow: TextOverflow.ellipsis),
                       );
                     }).toList(),
                     onChanged: (val) {
-                      if (val != null) onAdzanSoundChanged(val);
+                      if (val != null) {
+                         if (_isPlaying) _togglePlayAdzan(); // stop if playing
+                         widget.onAdzanSoundChanged(val);
+                      }
                     },
+                  ),
+                      ),
+                      if (widget.adzanSound != 'Standar')
+                        IconButton(
+                          icon: Icon(
+                            _isPlaying ? Icons.stop_circle : Icons.play_circle_fill,
+                            color: NurKitabColors.gold,
+                            size: 32,
+                          ),
+                          onPressed: _togglePlayAdzan,
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1593,7 +1781,7 @@ class ProfilePage extends StatelessWidget {
           _settingsCard(
             SwitchListTile(
               secondary: Icon(
-                isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
                 color: NurKitabColors.gold,
               ),
               title: const Text(
@@ -1601,15 +1789,15 @@ class ProfilePage extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               subtitle: Text(
-                isDarkMode ? 'Tema gelap islami premium' : 'Tema terang',
+                widget.isDarkMode ? 'Tema gelap islami premium' : 'Tema terang',
                 style: const TextStyle(
                   color: NurKitabColors.textMuted,
                   fontSize: 12,
                 ),
               ),
-              value: isDarkMode,
+              value: widget.isDarkMode,
               activeThumbColor: NurKitabColors.gold,
-              onChanged: onThemeChanged,
+              onChanged: widget.onThemeChanged,
             ),
           ),
 
@@ -1655,7 +1843,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       Expanded(
                         child: Slider(
-                          value: skalaFont,
+                          value: widget.skalaFont,
                           min: 0.8,
                           max: 1.6,
                           divisions: 4,
@@ -1663,8 +1851,8 @@ class ProfilePage extends StatelessWidget {
                           inactiveColor: NurKitabColors.goldDim.withValues(
                             alpha: 0.4,
                           ),
-                          label: '${(skalaFont * 100).toInt()}%',
-                          onChanged: onFontSizeChanged,
+                          label: '${(widget.skalaFont * 100).toInt()}%',
+                          onChanged: widget.onFontSizeChanged,
                         ),
                       ),
                       const Text(
@@ -1933,84 +2121,186 @@ class _SurahPendekPageState extends State<SurahPendekPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: NurKitabColors.deepGreen,
-      appBar: nurKitabAppBar('Al-Qur\'an'),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: NurKitabColors.gold),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _daftarSurah.length,
-              itemBuilder: (context, index) {
-                final surah = _daftarSurah[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: nurKitabCardDecoration(radius: 12),
-                  child: ListTile(
-                    leading: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          nurKitabAsset(
-                            NurKitabAssets.iconQuran,
-                            width: 44,
-                            height: 44,
-                          ),
-                          Text(
-                            "${surah['nomor'] ?? surah['id'] ?? ''}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                              shadows: [
-                                Shadow(color: Colors.black, blurRadius: 4),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: NurKitabColors.deepGreen,
+        appBar: AppBar(
+          backgroundColor: NurKitabColors.deepGreen,
+          elevation: 0,
+          title: const Text(
+            'Al-Qur\'an',
+            style: TextStyle(
+              color: NurKitabColors.gold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: NurKitabColors.gold),
+          bottom: const TabBar(
+            indicatorColor: NurKitabColors.gold,
+            labelColor: NurKitabColors.gold,
+            unselectedLabelColor: Colors.white70,
+            tabs: [
+              Tab(text: 'Surah'),
+              Tab(text: 'Juz'),
+            ],
+          ),
+        ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: NurKitabColors.gold),
+              )
+            : TabBarView(
+                children: [
+                  // Tab Surah
+                  ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _daftarSurah.length,
+                    itemBuilder: (context, index) {
+                      final surah = _daftarSurah[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: nurKitabCardDecoration(radius: 12),
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                nurKitabAsset(
+                                  NurKitabAssets.iconQuran,
+                                  width: 44,
+                                  height: 44,
+                                ),
+                                Text(
+                                  "${surah['nomor'] ?? surah['id'] ?? ''}",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    shadows: [
+                                      Shadow(color: Colors.black, blurRadius: 4),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    title: Text(
-                      surah['namaLatin'] ?? surah['surat_name'] ?? '',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      "${(surah['tempatTurun'] ?? surah['surat_terjemahan'] ?? '').toString().toUpperCase()} • ${surah['jumlahAyat'] ?? surah['count_ayat'] ?? ''} Ayat",
-                      style: const TextStyle(
-                        color: NurKitabColors.textMuted,
-                        fontSize: 12,
-                      ),
-                    ),
-                    trailing: Text(
-                      surah['nama'] ?? surah['surat_text'] ?? '',
-                      style: const TextStyle(
-                        color: NurKitabColors.gold,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HalamanMubarakQuran(
-                            nomorSurah: surah['nomor'] ?? surah['id'] ?? 1,
-                            judulSurah:
-                                surah['namaLatin'] ?? surah['surat_name'] ?? '',
-                            skalaFont: widget.skalaFont,
-                            isDarkMode: widget.isDarkMode,
+                          title: Text(
+                            surah['namaLatin'] ?? surah['surat_name'] ?? '',
+                            style: const TextStyle(color: Colors.white),
                           ),
+                          subtitle: Text(
+                            "${(surah['tempatTurun'] ?? surah['surat_terjemahan'] ?? '').toString().split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}' : '').join(' ')} • ${surah['jumlahAyat'] ?? surah['count_ayat'] ?? ''} Ayat",
+                            style: const TextStyle(
+                              color: NurKitabColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: Text(
+                            surah['nama'] ?? surah['surat_text'] ?? '',
+                            style: const TextStyle(
+                              color: NurKitabColors.gold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HalamanMubarakQuran(
+                                  nomorSurah: surah['nomor'] ?? surah['id'] ?? 1,
+                                  judulSurah:
+                                      surah['namaLatin'] ?? surah['surat_name'] ?? '',
+                                  skalaFont: widget.skalaFont,
+                                  isDarkMode: widget.isDarkMode,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       );
                     },
                   ),
-                );
-              },
-            ),
+                  // Tab Juz
+                  ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: juzMapping.length,
+                    itemBuilder: (context, index) {
+                      final juz = juzMapping[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: nurKitabCardDecoration(radius: 12),
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                nurKitabAsset(
+                                  NurKitabAssets.iconQuran,
+                                  width: 44,
+                                  height: 44,
+                                ),
+                                Text(
+                                  "${juz['juz']}",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    shadows: [
+                                      Shadow(color: Colors.black, blurRadius: 4),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          title: Text(
+                            "Juz ${juz['juz']}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "Surah ke-${juz['start_sura']} s.d Surah ke-${juz['end_sura']}",
+                            style: const TextStyle(
+                              color: NurKitabColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: Text(
+                            arabicJuzNames[index],
+                            style: const TextStyle(
+                              color: NurKitabColors.gold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HalamanMubarakJuz(
+                                  juzInfo: juz,
+                                  skalaFont: widget.skalaFont,
+                                  isDarkMode: widget.isDarkMode,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
@@ -2691,6 +2981,7 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
   Future<void> _simpanBacaanTerakhir() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_read_type', 'surah');
       await prefs.setInt('last_surah_nomor', widget.nomorSurah);
       await prefs.setString('last_surah_nama', widget.judulSurah);
     } catch (e) {
@@ -2767,94 +3058,81 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
     return totalTeks;
   }
 
-  Widget _buildCornerOrnament() {
-    return Container(
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        color: NurKitabColors.gold,
-        border: Border.all(
-          color: widget.isDarkMode ? Colors.black12 : const Color(0xFFFDFBF7),
-          width: 2,
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildSurahHeader() {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 24),
-          child: Stack(
-            children: [
-              // Container Utama: Mode Bingkai Mushaf Klasik (Double Border)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: widget.isDarkMode ? Colors.black12 : const Color(0xFFFDFBF7),
-                  border: Border.all(color: NurKitabColors.gold, width: 3),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: NurKitabColors.gold, width: 1.5),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Kiri: Nama Surah Latin
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          widget.judulSurah,
-                          style: TextStyle(
-                            fontSize: 14 * widget.skalaFont,
-                            fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
-                          ),
-                        ),
-                      ),
-                      // Tengah: Nama Arab Surah
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "سُوْرَةُ ${_surahArab.isNotEmpty ? _surahArab : widget.judulSurah}",
-                          textAlign: TextAlign.center,
-                          textDirection: TextDirection.rtl,
-                          style: TextStyle(
-                            fontSize: 26 * widget.skalaFont,
-                            fontFamily: 'ArefRuqaa',
-                            fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? NurKitabColors.gold : Colors.black87,
-                          ),
-                        ),
-                      ),
-                      // Kanan: Jumlah Ayat
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          "${_countAyat.isNotEmpty ? _countAyat : '-'} Ayat",
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 14 * widget.skalaFont,
-                            fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? Colors.white70 : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: widget.isDarkMode
+                    ? [
+                        NurKitabColors.cardGreenLight.withValues(alpha: 0.3),
+                        NurKitabColors.deepGreen,
+                      ]
+                    : [
+                        const Color(0xFFF2F6F3),
+                        const Color(0xFFE8EFEA),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              
-              // Ornamen Pojok Bingkai (Khas Mushaf)
-              Positioned(top: 0, left: 0, child: _buildCornerOrnament()),
-              Positioned(top: 0, right: 0, child: _buildCornerOrnament()),
-              Positioned(bottom: 0, left: 0, child: _buildCornerOrnament()),
-              Positioned(bottom: 0, right: 0, child: _buildCornerOrnament()),
-            ],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: NurKitabColors.gold.withValues(alpha: 0.8),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Kiri: Nama Surah Latin
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    widget.judulSurah,
+                    style: TextStyle(
+                      fontSize: 14 * widget.skalaFont,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ),
+                // Tengah: Nama Arab Surah
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    "سُوْرَةُ ${_surahArab.isNotEmpty ? _surahArab : widget.judulSurah}",
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      fontSize: 26 * widget.skalaFont,
+                      fontFamily: 'ArefRuqaa',
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? NurKitabColors.gold : Colors.black87,
+                    ),
+                  ),
+                ),
+                // Kanan: Jumlah Ayat
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    "${_countAyat.isNotEmpty ? _countAyat : '-'} Ayat",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 14 * widget.skalaFont,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         if (widget.nomorSurah != 9 && widget.nomorSurah != 1)
@@ -2908,6 +3186,270 @@ class _HalamanMubarakQuranState extends State<HalamanMubarakQuran> {
                     ),
                   ),
                 ],
+              ),
+            ),
+    );
+  }
+}
+
+class HalamanMubarakJuz extends StatefulWidget {
+  final Map<String, dynamic> juzInfo;
+  final double skalaFont;
+  final bool isDarkMode;
+
+  const HalamanMubarakJuz({
+    super.key,
+    required this.juzInfo,
+    required this.skalaFont,
+    required this.isDarkMode,
+  });
+
+  @override
+  State<HalamanMubarakJuz> createState() => _HalamanMubarakJuzState();
+}
+
+class _HalamanMubarakJuzState extends State<HalamanMubarakJuz> {
+  bool _isLoading = true;
+  List<Widget> _juzContent = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _ambilDetailJuz();
+    _simpanBacaanTerakhir();
+  }
+
+  Future<void> _simpanBacaanTerakhir() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_read_type', 'juz');
+      await prefs.setInt('last_juz_nomor', widget.juzInfo['juz']);
+      await prefs.remove('last_juz_surah');
+    } catch (e) {
+      // Menghindari crash jika storage bermasalah
+    }
+  }
+
+  // 🟢 Fungsi pembantu untuk mengubah angka biasa (1,2,3) menjadi angka Arab (١,٢,٣)
+  String _konversiKeAngkaArab(String nomor) {
+    const angkaBiasa = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const angkaArab = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+
+    String hasil = nomor;
+    for (int i = 0; i < angkaBiasa.length; i++) {
+      hasil = hasil.replaceAll(angkaBiasa[i], angkaArab[i]);
+    }
+    return hasil;
+  }
+
+  Future<void> _ambilDetailJuz() async {
+    try {
+      int startSura = widget.juzInfo['start_sura'];
+      int endSura = widget.juzInfo['end_sura'];
+      int targetJuz = widget.juzInfo['juz'];
+
+      // Ambil metadata surah dari surah.json
+      final String surahMetadataJson = await rootBundle.loadString('asset/json/surah.json');
+      final Map<String, dynamic> allSurah = json.decode(surahMetadataJson);
+      final List<dynamic> listSurah = allSurah['data'] ?? [];
+
+      List<Widget> contentWidgets = [];
+      String currentTextBuffer = "";
+
+      void flushTextBuffer() {
+        if (currentTextBuffer.isNotEmpty) {
+          contentWidgets.add(
+            Text(
+              currentTextBuffer,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.justify,
+              style: TextStyle(
+                fontSize: 26 * widget.skalaFont,
+                height: 2.4,
+                color: widget.isDarkMode ? Colors.white : Colors.black87,
+                fontFamily: 'Amiri',
+              ),
+            ),
+          );
+          currentTextBuffer = "";
+        }
+      }
+
+      for (int i = startSura; i <= endSura; i++) {
+        final String jsonString = await rootBundle.loadString(
+          'asset/json/surah/$i.json',
+        );
+        final Map<String, dynamic> dataJson = json.decode(jsonString);
+        
+        List<dynamic> ayatList = [];
+        if (dataJson['ayat'] != null) {
+          ayatList = dataJson['ayat'];
+        } else if (dataJson['data'] != null && dataJson['data'] is List) {
+          ayatList = dataJson['data'];
+        }
+
+        for (var ayat in ayatList) {
+          if (ayat['juz_id'] == targetJuz) {
+            String nomor =
+                (ayat['nomorAyat'] ?? ayat['nomor'] ?? ayat['aya_number'] ?? '')
+                    .toString();
+            String teks =
+                (ayat['teksArab'] ??
+                        ayat['text'] ??
+                        ayat['ar'] ??
+                        ayat['aya_text'] ??
+                        '')
+                    .toString();
+            
+            if (nomor == '1') {
+              flushTextBuffer(); // Kosongkan buffer teks sebelumnya
+
+              final surahInfo = listSurah.firstWhere(
+                  (s) => s['id'] == i,
+                  orElse: () => null);
+
+              String surahName = surahInfo != null ? (surahInfo['surat_name'] ?? "Surah $i") : "Surah $i";
+              String surahArab = surahInfo != null ? (surahInfo['surat_text']?.toString().trim() ?? "") : "";
+              String countAyat = surahInfo != null ? (surahInfo['count_ayat']?.toString() ?? "") : "";
+
+              contentWidgets.add(
+                VisibilityDetector(
+                  key: Key('juz_${targetJuz}_surah_$i'),
+                  onVisibilityChanged: (visibilityInfo) async {
+                    if (visibilityInfo.visibleFraction > 0.05) {
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('last_juz_surah', surahName);
+                      } catch (e) {
+                        // ignore
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 24, top: 12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: widget.isDarkMode
+                              ? [
+                                  NurKitabColors.cardGreenLight.withValues(alpha: 0.3),
+                                  NurKitabColors.deepGreen,
+                                ]
+                              : [
+                                  const Color(0xFFF2F6F3),
+                                  const Color(0xFFE8EFEA),
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: NurKitabColors.gold.withValues(alpha: 0.8),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              surahName,
+                              style: TextStyle(
+                                fontSize: 14 * widget.skalaFont,
+                                fontWeight: FontWeight.bold,
+                                color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              "سُوْرَةُ ${surahArab.isNotEmpty ? surahArab : surahName}",
+                              textAlign: TextAlign.center,
+                              textDirection: TextDirection.rtl,
+                              style: TextStyle(
+                                fontSize: 26 * widget.skalaFont,
+                                fontFamily: 'ArefRuqaa',
+                                fontWeight: FontWeight.bold,
+                                color: widget.isDarkMode ? NurKitabColors.gold : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              "${countAyat.isNotEmpty ? countAyat : '-'} Ayat",
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 14 * widget.skalaFont,
+                                fontWeight: FontWeight.bold,
+                                color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+
+              // Tambahkan Bismillah di tengah jika ini adalah awal surah (kecuali Al-Fatihah dan At-Taubah)
+              if (i != 1 && i != 9) {
+                contentWidgets.add(
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Text(
+                      "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ",
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        fontSize: 28 * widget.skalaFont,
+                        fontFamily: 'ArefRuqaa',
+                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }
+            
+            String nomorArab = _konversiKeAngkaArab(nomor);
+            currentTextBuffer += "$teks ﴿$nomorArab﴾ ";
+          }
+        }
+      }
+      
+      flushTextBuffer(); // Kosongkan sisa buffer teks terakhir
+
+      setState(() {
+        _juzContent = contentWidgets;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: widget.isDarkMode
+          ? NurKitabColors.deepGreen
+          : const Color(0xFFFDFBF7),
+      appBar: nurKitabAppBar("Juz ${widget.juzInfo['juz']}"),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: NurKitabColors.gold),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _juzContent,
               ),
             ),
     );
@@ -3269,6 +3811,12 @@ class _IslamicCalendarPageState extends State<IslamicCalendarPage> {
                                 }
                                 if (isToday) masehiColor = NurKitabColors.gold;
 
+                                DateTime d1 = DateTime.utc(1970, 1, 1);
+                                DateTime d2 = DateTime.utc(thnMasehi, blnMasehi, tglMasehi);
+                                int deltaDays = d2.difference(d1).inDays;
+                                List<String> pasaranNames = ["Wage", "Kliwon", "Legi", "Pahing", "Pon"];
+                                String pasaran = pasaranNames[deltaDays % 5];
+
                                 return Container(
                                   decoration: BoxDecoration(
                                     color: isToday
@@ -3299,7 +3847,14 @@ class _IslamicCalendarPageState extends State<IslamicCalendarPage> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      Text(
+                                        pasaran,
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 9,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 1),
                                       Text(
                                         "${hijri['day']}",
                                         style: TextStyle(
